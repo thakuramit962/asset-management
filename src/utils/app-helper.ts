@@ -26,4 +26,4 @@ export const downloadFile = (data: any, fileName: string) => {
 
 
 
-export const serverRoute = 'http://192.168.5.31:8000'
+export const serverRoute = 'http://demo-assets.easemyorder.com/'
