@@ -34,7 +34,7 @@ export default function Login() {
 
     const onSubmit = (data: any) => {
         setSubmitting(true)
-        axios.post('/api/login', {...data})
+        axios.post('https://demo-assets.easemyorder.com/api/login', {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     const userInfo: User = res.data?.data?.user
