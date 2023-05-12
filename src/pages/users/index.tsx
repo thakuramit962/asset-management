@@ -17,7 +17,7 @@ import {
 import ThemeFab from "../../components/button/theme-fab";
 import {useNavigate} from "react-router-dom";
 import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
-import {getFirstErrorMessage} from "../../utils/app-helper";
+import {getFirstErrorMessage, serverRoute} from "../../utils/app-helper";
 import ThemeDialog from "../../components/dialog-box/theme-dialog";
 import {LoadingButton, Pagination} from "@mui/lab";
 import RemoveItemDialog from "../../components/dialog-box/remove-item-dialog";
@@ -61,7 +61,7 @@ export default function Users() {
 
     const fetchUsers = useCallback(() => {
         setUserFetching(true)
-        axios.get('/api/users')
+        axios.get(`${serverRoute}/api/users`)
             .then((res) => {
                 if (res.data?.status == true) setUsers(res.data?.data)
                 else console.log('some error occured')
@@ -257,7 +257,7 @@ const UpdateUserForm = (props: any) => {
 
 
     const fetchRole = () => {
-        axios.get('/api/get-role')
+        axios.get(`${serverRoute}/api/get-role`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setRoles(res.data?.data?.roles)
@@ -270,7 +270,7 @@ const UpdateUserForm = (props: any) => {
 
     const onSubmit = (data: any) => {
         setLoading(true)
-        axios.post(`/api/update-user/${user?.id}`, {...data})
+        axios.post(`${serverRoute}/api/update-user/${user?.id}`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     console.log(JSON.stringify(res))

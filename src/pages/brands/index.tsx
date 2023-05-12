@@ -26,7 +26,7 @@ import axios from "axios";
 import {Brand} from "../../models/brand";
 import ThemeFab from "../../components/button/theme-fab";
 import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
-import {getFirstErrorMessage} from "../../utils/app-helper";
+import {getFirstErrorMessage, serverRoute} from "../../utils/app-helper";
 import {ThemeTableContainer} from "../../components/theme-table-container";
 import {LoadingItem} from "../../components/loading-view";
 import moment from "moment";
@@ -47,7 +47,7 @@ export default function Brands() {
 
     const fetchBrands = () => {
         setFetchingBrands(true)
-        axios.get('/api/brands')
+        axios.get(`${serverRoute}/api/brands`)
             .then((res) => setBrands(res.data?.data))
             .catch((err) => console.error(err))
             .finally(() => setFetchingBrands(false))
@@ -64,7 +64,7 @@ export default function Brands() {
     }, [brands, searchKeyword])
 
     const updateBrand = (data: any) => {
-        axios.post(`/api/update-brand`, {...brand, ...data})
+        axios.post(`${serverRoute}/api/update-brand`, {...brand, ...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     console.log(JSON.stringify(res))
@@ -243,7 +243,7 @@ const AddBrandForm = (props: any) => {
 
     const onSubmit = (data: any) => {
         setLoading(true)
-        axios.post(`/api/add-brand`, {...data})
+        axios.post(`${serverRoute}/api/add-brand`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     reset()
@@ -326,7 +326,7 @@ const UpdateBrandForm = (props: any) => {
     const closeAndDiscard = () => closeDialog()
 
     const updateBrand = (data: any) => {
-        axios.post(`/api/update-brand`, {...brand, ...data})
+        axios.post(`${serverRoute}/api/update-brand`, {...brand, ...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     reset()

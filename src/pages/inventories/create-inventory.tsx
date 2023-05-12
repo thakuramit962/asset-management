@@ -29,6 +29,7 @@ import {AdapterMoment} from "@mui/x-date-pickers/AdapterMoment";
 import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import moment from "moment";
 import LoadingView from "../../components/loading-view";
+import {serverRoute} from "../../utils/app-helper";
 
 
 interface optionData {
@@ -81,7 +82,7 @@ export default function CreateInventory() {
 
     const fetchRole = () => {
         setFetchingRequires(true)
-        axios.get('/api/get-role')
+        axios.get(`${serverRoute}/api/get-role`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setRoles(res.data?.data?.roles)
@@ -92,7 +93,7 @@ export default function CreateInventory() {
     }
     const fetchBrands = () => {
         setFetchingRequires(true)
-        axios.get('/api/get-brand')
+        axios.get(`${serverRoute}/api/get-brand`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setBrands(res.data?.data?.brands)
@@ -105,7 +106,7 @@ export default function CreateInventory() {
 
     const fetchVendors = useCallback((unit: string) => {
         setFetchingVendors(true)
-        axios.get(`/api/get-vendors/${unit}`)
+        axios.get(`${serverRoute}/api/get-vendors/${unit}`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setVendors(res.data?.data?.vendor_data)
@@ -125,7 +126,7 @@ export default function CreateInventory() {
             message: 'Duplicate serial no'
         }, {shouldFocus: true})
         else {
-            axios.get(`/api/check-serialno/${sno}`)
+            axios.get(`${serverRoute}/api/check-serialno/${sno}`)
                 .then((res) => {
                     console.log(res.data?.status)
                     if (res.data?.status == true) setError(inputName, {
@@ -159,7 +160,7 @@ export default function CreateInventory() {
         }
 
         console.log('newData', newData)
-        axios.post('/api/create-inventory', newData, {
+        axios.post(`${serverRoute}/api/create-inventory`, newData, {
             headers: {
                 "Content-Type": "multipart/form-data"
             }

@@ -16,6 +16,7 @@ import {useLocation} from "react-router";
 import {RootState} from "../store/store";
 import {useNavigate} from "react-router-dom";
 import ThemeSnackbar from "../components/theme-snackbar";
+import {serverRoute} from "../utils/app-helper";
 
 
 export default function Login() {
@@ -34,7 +35,7 @@ export default function Login() {
 
     const onSubmit = (data: any) => {
         setSubmitting(true)
-        axios.post('api/login', {...data})
+        axios.post(`${serverRoute}/api/login`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     const userInfo: User = res.data?.data?.user

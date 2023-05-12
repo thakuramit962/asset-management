@@ -24,6 +24,7 @@ import {ThemeSwitch} from "../../components/inputs/theme-switch";
 import ThemeCheckbox from "../../components/inputs/theme-checkbox";
 import axios from "axios";
 import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
+import {serverRoute} from "../../utils/app-helper";
 
 
 interface optionData {
@@ -60,7 +61,7 @@ export default function CreateUser() {
 
 
     const fetchRole = () => {
-        axios.get('/api/get-role')
+        axios.get(`${serverRoute}/api/get-role`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setRoles(res.data?.data?.roles)
@@ -75,7 +76,7 @@ export default function CreateUser() {
     const onSubmit = (data: any) => {
         console.log(data)
         setLoading(true)
-        axios.post('/api/register', {...data})
+        axios.post(`${serverRoute}/api/register`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     reset();

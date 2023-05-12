@@ -84,7 +84,7 @@ export default function Inventories() {
 
     const fetchInventory = useCallback(() => {
         setInventoryFetching(true)
-        axios.get('/api/inventories')
+        axios.get(`${serverRoute}/api/inventories`)
             .then((res) => {
                 if (res.data?.status == true) console.log('inventory', res.data?.data)
                 if (res.data?.status == true) setInventories(res.data?.data)
@@ -97,7 +97,7 @@ export default function Inventories() {
     const exportInventory = () => {
         setExporting(true)
         const today = moment().format('DD-MM-YYYY-HH-mm-ss')
-        axios.get('/api/inventory/export')
+        axios.get(`${serverRoute}/api/inventory/export`)
             .then((res) => {
                 console.log('inventory', res.data)
                 downloadFile(res.data, `asset-inventory-${today}.csv`)
@@ -108,7 +108,7 @@ export default function Inventories() {
 
     const printUnderTaking = (id: string) => {
         setPrintingUnderTaking(true)
-        axios.get(`/api/pdf-inventory/${id}`)
+        axios.get(`${serverRoute}/api/pdf-inventory/${id}`)
             .then((res) => {
                 console.log('inventory', res.data)
                 downloadFile(res.data, `assest-${id}-undertaking.pdf`)
@@ -521,7 +521,7 @@ const AssignStatusForm = (props: any) => {
             remarks: data.remarks
         }
 
-        axios.post('/api/update-assign-status', newData)
+        axios.post(`${serverRoute}/api/update-assign-status`, newData)
             .then((res) => {
                 if (res.data?.status == true) {
                     onCompletion()
@@ -680,7 +680,7 @@ const UnAssignStatusForm = (props: any) => {
             assigned_date: '',
         }
 
-        axios.post('/api/update-assign-status', newData)
+        axios.post(`${serverRoute}/api/update-assign-status`, newData)
             .then((res) => {
                 if (res.data?.status == true) {
                     onCompletion()
@@ -821,7 +821,7 @@ const ImportForm = (props: any) => {
     const onUpload = (data: any) => {
         setIsFunctioning(true)
         const newData = {importFile: data.importFile[0]}
-        axios.post(`/api/${api}`, newData, {
+        axios.post(`${serverRoute}/api/${api}`, newData, {
             onUploadProgress: (progressEvent) => {
                 console.log('progress', progressEvent.progress)
                 console.log('loaded', progressEvent.loaded)
