@@ -22,7 +22,6 @@ import PageContainer from "../../components/containers/page-container"
 import {useNavigate} from "react-router-dom";
 import {LoadingButton} from "@mui/lab";
 import {textFieldSx, ThemeTextField} from "../../components/inputs/theme-text-field";
-import axios from "axios";
 import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
 import {DatePicker} from "@mui/x-date-pickers";
 import {AdapterMoment} from "@mui/x-date-pickers/AdapterMoment";
@@ -30,6 +29,7 @@ import {LocalizationProvider} from '@mui/x-date-pickers/LocalizationProvider';
 import moment from "moment";
 import LoadingView from "../../components/loading-view";
 import {serverRoute} from "../../utils/app-helper";
+import API from "../../api";
 
 
 interface optionData {
@@ -82,7 +82,7 @@ export default function CreateInventory() {
 
     const fetchRole = () => {
         setFetchingRequires(true)
-        axios.get(`${serverRoute}/api/get-role`)
+        API.get(`/get-role`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setRoles(res.data?.data?.roles)
@@ -93,7 +93,7 @@ export default function CreateInventory() {
     }
     const fetchBrands = () => {
         setFetchingRequires(true)
-        axios.get(`${serverRoute}/api/get-brand`)
+        API.get(`/get-brand`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setBrands(res.data?.data?.brands)
@@ -106,7 +106,7 @@ export default function CreateInventory() {
 
     const fetchVendors = useCallback((unit: string) => {
         setFetchingVendors(true)
-        axios.get(`${serverRoute}/api/get-vendors/${unit}`)
+        API.get(`/get-vendors/${unit}`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setVendors(res.data?.data?.vendor_data)
@@ -126,7 +126,7 @@ export default function CreateInventory() {
             message: 'Duplicate serial no'
         }, {shouldFocus: true})
         else {
-            axios.get(`${serverRoute}/api/check-serialno/${sno}`)
+            API.get(`/check-serialno/${sno}`)
                 .then((res) => {
                     console.log(res.data?.status)
                     if (res.data?.status == true) setError(inputName, {
@@ -159,8 +159,7 @@ export default function CreateInventory() {
             itemImages
         }
 
-        console.log('newData', newData)
-        axios.post(`${serverRoute}/api/create-inventory`, newData, {
+        API.post(`/create-inventory`, newData, {
             headers: {
                 "Content-Type": "multipart/form-data"
             }

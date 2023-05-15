@@ -32,12 +32,12 @@ import {
 } from "@mui/icons-material";
 import {LoadingItem} from "../../components/loading-view";
 import {ThemeTableContainer} from "../../components/theme-table-container";
-import axios from "axios";
 import {Inventory} from "../../models/inventory";
 import usePagination from "../../hooks/use-pagination";
 import {ThemeTextField} from "../../components/inputs/theme-text-field";
 import moment from "moment";
 import notifyBell from "../../assets/images/notify.png";
+import API from "../../api";
 
 
 export default function Inventories() {
@@ -84,7 +84,7 @@ export default function Inventories() {
 
     const fetchInventory = useCallback(() => {
         setInventoryFetching(true)
-        axios.get(`${serverRoute}/api/inventories`)
+        API.get(`/inventories`)
             .then((res) => {
                 if (res.data?.status == true) console.log('inventory', res.data?.data)
                 if (res.data?.status == true) setInventories(res.data?.data)
@@ -97,7 +97,7 @@ export default function Inventories() {
     const exportInventory = () => {
         setExporting(true)
         const today = moment().format('DD-MM-YYYY-HH-mm-ss')
-        axios.get(`${serverRoute}/api/inventory/export`)
+        API.get(`/inventory/export`)
             .then((res) => {
                 console.log('inventory', res.data)
                 downloadFile(res.data, `asset-inventory-${today}.csv`)
@@ -108,7 +108,7 @@ export default function Inventories() {
 
     const printUnderTaking = (id: string) => {
         setPrintingUnderTaking(true)
-        axios.get(`${serverRoute}/api/pdf-inventory/${id}`)
+        API.get(`/pdf-inventory/${id}`)
             .then((res) => {
                 console.log('inventory', res.data)
                 downloadFile(res.data, `assest-${id}-undertaking.pdf`)
@@ -521,7 +521,7 @@ const AssignStatusForm = (props: any) => {
             remarks: data.remarks
         }
 
-        axios.post(`${serverRoute}/api/update-assign-status`, newData)
+        API.post(`/update-assign-status`, newData)
             .then((res) => {
                 if (res.data?.status == true) {
                     onCompletion()
@@ -680,7 +680,7 @@ const UnAssignStatusForm = (props: any) => {
             assigned_date: '',
         }
 
-        axios.post(`${serverRoute}/api/update-assign-status`, newData)
+        API.post(`/update-assign-status`, newData)
             .then((res) => {
                 if (res.data?.status == true) {
                     onCompletion()
@@ -809,7 +809,7 @@ const ImportForm = (props: any) => {
     const downloadSample = () => {
         setIsFunctioning(true)
         const link = document.createElement("a")
-        link.href = `${serverRoute}/api/sample-inventories`
+        link.href = `/sample-inventories`
         link.setAttribute("download", 'fddfdsf.xlsx')
         document.body.appendChild(link)
         link.click()
@@ -821,7 +821,7 @@ const ImportForm = (props: any) => {
     const onUpload = (data: any) => {
         setIsFunctioning(true)
         const newData = {importFile: data.importFile[0]}
-        axios.post(`${serverRoute}/api/${api}`, newData, {
+        API.post(`/${api}`, newData, {
             onUploadProgress: (progressEvent) => {
                 console.log('progress', progressEvent.progress)
                 console.log('loaded', progressEvent.loaded)

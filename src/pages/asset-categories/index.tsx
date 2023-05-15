@@ -22,13 +22,13 @@ import demoImg from '../../assets/images/laptop.png'
 import ThemeDialog from "../../components/dialog-box/theme-dialog";
 import {ThemeSwitch} from "../../components/inputs/theme-switch";
 import {Controller, useForm} from "react-hook-form";
-import axios from "axios";
 import {Category} from "../../models/category";
 import ThemeFab from "../../components/button/theme-fab";
 import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
 import {getFirstErrorMessage, serverRoute} from "../../utils/app-helper";
 import {ThemeTableContainer} from "../../components/theme-table-container";
 import {LoadingItem} from "../../components/loading-view";
+import API from "../../api";
 
 
 export default function AssetCategories() {
@@ -46,7 +46,7 @@ export default function AssetCategories() {
 
     const fetchCategory = () => {
         setFetchingCategories(true)
-        axios.get(`${serverRoute}/api/categories`)
+        API.get(`/categories`)
             .then((res) => {
                 setCategories(res.data?.data)
             })
@@ -68,7 +68,7 @@ export default function AssetCategories() {
 
 
     const updateCategory = (data: any) => {
-        axios.post(`${serverRoute}/api/update-category`, {...category, ...data})
+        API.post(`/update-category`, {...category, ...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     dispatch(updateSnackbarMessage({
@@ -246,7 +246,7 @@ const AddCategoryForm = (props: any) => {
 
     const onSubmit = (data: any) => {
         setLoading(true)
-        axios.post(`${serverRoute}/api/add-category`, {...data})
+        API.post(`/add-category`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     reset()
@@ -329,7 +329,7 @@ const UpdateCategoryForm = (props: any) => {
     const closeAndDiscard = () => closeDialog()
 
     const updateCategory = (data: any) => {
-        axios.post(`${serverRoute}/api/update-category`, {...category, ...data})
+        API.post(`/update-category`, {...category, ...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     reset()

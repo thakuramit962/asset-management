@@ -25,13 +25,13 @@ import {Controller, useForm} from "react-hook-form";
 import {ArrowRightRounded, DeleteOutlined, DownloadRounded, EditOutlined, Search,} from "@mui/icons-material";
 import {LoadingItem} from "../../components/loading-view";
 import {ThemeTableContainer} from "../../components/theme-table-container";
-import axios from "axios";
 import {User} from "../../models/user";
 import usePagination from "../../hooks/use-pagination";
 import {ThemeTextField} from "../../components/inputs/theme-text-field";
 import ThemePasswordInput from "../../components/inputs/theme-password-input";
 
 import searchIcon from '../../assets/icons/search-icon.svg'
+import API from "../../api";
 
 
 export default function Users() {
@@ -61,7 +61,7 @@ export default function Users() {
 
     const fetchUsers = useCallback(() => {
         setUserFetching(true)
-        axios.get(`${serverRoute}/api/users`)
+        API.get(`/users`)
             .then((res) => {
                 if (res.data?.status == true) setUsers(res.data?.data)
                 else console.log('some error occured')
@@ -257,7 +257,7 @@ const UpdateUserForm = (props: any) => {
 
 
     const fetchRole = () => {
-        axios.get(`${serverRoute}/api/get-role`)
+        API.get(`/get-role`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setRoles(res.data?.data?.roles)
@@ -270,7 +270,7 @@ const UpdateUserForm = (props: any) => {
 
     const onSubmit = (data: any) => {
         setLoading(true)
-        axios.post(`${serverRoute}/api/update-user/${user?.id}`, {...data})
+        API.post(`/update-user/${user?.id}`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     console.log(JSON.stringify(res))

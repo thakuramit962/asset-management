@@ -5,7 +5,7 @@ import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
 import {camelCaseWords, getFirstErrorMessage, serverRoute} from "../../utils/app-helper";
 import notifyBell from "../../assets/images/notify.png";
 import {LoadingButton} from "@mui/lab";
-import axios from "axios";
+import API from "../../api";
 
 
 interface RemoveItemDialogProps {
@@ -37,7 +37,7 @@ export default function RemoveItemDialog(props: RemoveItemDialogProps) {
     const removeRegionalClient = () => {
         setLoading(true)
         setTimeout(()=>setLoading(false))
-        axios.post(`${serverRoute}/api/${apiName}/${id}`, {status: 0})
+        API.post(`/${apiName}/${id}`, {status: 0})
             .then((res) => {
                 if (res.data?.status == true) {
                     console.log(JSON.stringify(res))

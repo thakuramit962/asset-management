@@ -20,11 +20,8 @@ import ThemeInput from "../../components/inputs/theme-input";
 import {LoadingButton} from "@mui/lab";
 import {ThemeTextField} from "../../components/inputs/theme-text-field";
 import ThemePasswordInput from "../../components/inputs/theme-password-input";
-import {ThemeSwitch} from "../../components/inputs/theme-switch";
-import ThemeCheckbox from "../../components/inputs/theme-checkbox";
-import axios from "axios";
 import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
-import {serverRoute} from "../../utils/app-helper";
+import API from "../../api";
 
 
 interface optionData {
@@ -61,7 +58,7 @@ export default function CreateUser() {
 
 
     const fetchRole = () => {
-        axios.get(`${serverRoute}/api/get-role`)
+        API.get(`/get-role`)
             .then((res) => {
                 if (res.data?.status == true) {
                     setRoles(res.data?.data?.roles)
@@ -76,7 +73,7 @@ export default function CreateUser() {
     const onSubmit = (data: any) => {
         console.log(data)
         setLoading(true)
-        axios.post(`${serverRoute}/api/register`, {...data})
+        API.post(`/register`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     reset();

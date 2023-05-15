@@ -22,14 +22,13 @@ import demoImg from '../../assets/images/laptop.png'
 import ThemeDialog from "../../components/dialog-box/theme-dialog";
 import {ThemeSwitch} from "../../components/inputs/theme-switch";
 import {Controller, useForm} from "react-hook-form";
-import axios from "axios";
 import {Brand} from "../../models/brand";
 import ThemeFab from "../../components/button/theme-fab";
 import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
 import {getFirstErrorMessage, serverRoute} from "../../utils/app-helper";
 import {ThemeTableContainer} from "../../components/theme-table-container";
 import {LoadingItem} from "../../components/loading-view";
-import moment from "moment";
+import API from "../../api";
 
 
 export default function Brands() {
@@ -47,7 +46,7 @@ export default function Brands() {
 
     const fetchBrands = () => {
         setFetchingBrands(true)
-        axios.get(`${serverRoute}/api/brands`)
+        API.get(`/brands`)
             .then((res) => setBrands(res.data?.data))
             .catch((err) => console.error(err))
             .finally(() => setFetchingBrands(false))
@@ -64,7 +63,7 @@ export default function Brands() {
     }, [brands, searchKeyword])
 
     const updateBrand = (data: any) => {
-        axios.post(`${serverRoute}/api/update-brand`, {...brand, ...data})
+        API.post(`/update-brand`, {...brand, ...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     console.log(JSON.stringify(res))
@@ -243,7 +242,7 @@ const AddBrandForm = (props: any) => {
 
     const onSubmit = (data: any) => {
         setLoading(true)
-        axios.post(`${serverRoute}/api/add-brand`, {...data})
+        API.post(`/add-brand`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     reset()
@@ -326,7 +325,7 @@ const UpdateBrandForm = (props: any) => {
     const closeAndDiscard = () => closeDialog()
 
     const updateBrand = (data: any) => {
-        axios.post(`${serverRoute}/api/update-brand`, {...brand, ...data})
+        API.post(`/update-brand`, {...brand, ...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     reset()

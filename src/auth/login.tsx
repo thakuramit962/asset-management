@@ -1,13 +1,10 @@
 import React, {useEffect, useState} from 'react'
-import {Box, Checkbox, FormControlLabel, IconButton, InputAdornment, Stack, Typography, useTheme} from "@mui/material"
+import {Box, Checkbox, FormControlLabel, Stack, Typography, useTheme} from "@mui/material"
 import {LoadingButton} from '@mui/lab'
-import {Visibility, VisibilityOff} from "@mui/icons-material"
 import {useForm, Controller} from 'react-hook-form'
-import ThemeInput from "../components/inputs/theme-input"
 import logo from '../assets/images/frontiers-logo.svg'
 import ThemePasswordInput from "../components/inputs/theme-password-input";
 import {ThemeTextField} from "../components/inputs/theme-text-field";
-import axios from 'axios'
 import {updateSnackbarMessage} from "../slices/snackbar-message-slice";
 import {useDispatch, useSelector} from "react-redux";
 import {User} from "../models/user";
@@ -16,7 +13,7 @@ import {useLocation} from "react-router";
 import {RootState} from "../store/store";
 import {useNavigate} from "react-router-dom";
 import ThemeSnackbar from "../components/theme-snackbar";
-import {serverRoute} from "../utils/app-helper";
+import API from "../api";
 
 
 export default function Login() {
@@ -35,7 +32,7 @@ export default function Login() {
 
     const onSubmit = (data: any) => {
         setSubmitting(true)
-        axios.post(`${serverRoute}/api/login`, {...data})
+        API.post(`/login`, {...data})
             .then((res) => {
                 if (res.data?.status == true) {
                     const userInfo: User = res.data?.data?.user
