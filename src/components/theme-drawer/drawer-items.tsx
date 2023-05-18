@@ -1,64 +1,94 @@
-import React from 'react'
+import React, {useState} from 'react'
 import {
     Collapse,
     List,
     ListItem,
     ListItemButton,
     ListItemIcon,
-    ListItemText,
+    ListItemText, Tooltip,
     useMediaQuery
 } from "@mui/material"
 import {
-    CategoryRounded,
-    ExpandLessRounded, ExpandMoreRounded, Group, GroupRounded,
-    HomeRounded, Inventory2Rounded, SellRounded,
-    SettingsSuggestRounded,
-    TaskAltRounded
+    AssignmentLateRounded,
+    CategoryRounded, DashboardRounded, DeleteSweepRounded,
+    ExpandLessRounded, ExpandMoreRounded, GroupRounded,
+    Inventory2Rounded, PersonAddRounded, PersonRemoveRounded, QueuePlayNextRounded, SellRounded,
+    SummarizeRounded,
+    TaskAltRounded, TextSnippetRounded
 } from "@mui/icons-material"
 import {NavLink} from 'react-router-dom'
+import {useSelector} from "react-redux";
+import {RootState} from "../../store/store";
 
 
 export default function DrawerItems(props: any) {
 
-    const {toggleDrawer} = props
+    const {toggleDrawer, isDrawerOpen} = props
+    const user = useSelector((state: RootState) => state.userAuth?.currentUser)
 
 
     const navItems = [
-        {label: 'Home', link: '/', icon: HomeRounded},
-        {label: 'Users', link: '/users', icon: GroupRounded, subMenus: []},
+        {label: 'Dashboard', link: '/', icon: DashboardRounded},
+        ...(user?.role_id == '1'
+            ? [{label: 'Users', link: '/users', icon: GroupRounded, subMenus: []},]
+            : []),
         {
-            label: 'Inventory',
-            link: '/tasks',
+            label: 'Assets',
+            link: '',
             icon: TaskAltRounded,
             subMenus: [
-                {label: 'Assets', link: '/inventories', icon: Inventory2Rounded},
-                {label: 'Categories', link: '/categories', icon: CategoryRounded},
-                {label: 'Brands', link: '/brands', icon: SellRounded},
-                // {label: 'Rss', link: '/demo', icon: TaskAltRounded,},
+                {label: 'Create', link: '/create-inventory', icon: QueuePlayNextRounded},
+                {label: 'List', link: '/inventories', icon: Inventory2Rounded},
+                {label: 'Assign ', link: '/assign-asset', icon: PersonAddRounded},
+                {label: 'Pullback', link: '/pullback-asset', icon: PersonRemoveRounded},
+                {label: 'Scrap', link: '/scrap-asset', icon: DeleteSweepRounded},
             ]
         },
-
+        {
+            label: 'Reports',
+            link: '',
+            icon: TaskAltRounded,
+            subMenus: [
+                {label: 'Assets', link: '/demo', icon: SummarizeRounded},
+                {label: 'UnAssigned Assets', link: '/configurations', icon: AssignmentLateRounded},
+                {label: 'Undertakings ', link: '/undertakings', icon: TextSnippetRounded},
+            ]
+        },
+        ...(user?.role_id == '1'
+            ? [{
+                label: 'Dropdowns',
+                link: '',
+                icon: TaskAltRounded,
+                subMenus: [
+                    {label: 'Categories', link: '/categories', icon: CategoryRounded},
+                    {label: 'Brands', link: '/brands', icon: SellRounded},
+                ]
+            },]
+            : []),
     ]
 
 
     return (
-        <NavigationItems componentType={'nav'} navItems={navItems} toggleDrawer={toggleDrawer}/>
+        <NavigationItems componentType={'nav'} navItems={navItems} isDrawerOpen={isDrawerOpen} toggleDrawer={toggleDrawer}/>
     )
 }
 
 
 const NavItem = (props: any) => {
-    const {onExpandMenu, open} = props
+    const {onExpandMenu, open, isDrawerOpen} = props
     return (
         <ListItem disablePadding onClick={onExpandMenu}>
-            <ListItemButton>
-                <ListItemIcon>
-                    {props.subMenus
-                        ? (open ? <ExpandLessRounded className={'expandArrow'}/> : <ExpandMoreRounded className={'expandArrow'}/>)
-                        : props.icon && <props.icon/>}
-                </ListItemIcon>
-                <ListItemText primary={props.label}/>
-            </ListItemButton>
+            <Tooltip title={!isDrawerOpen ? props.label : ''} arrow placement={'right'}>
+                <ListItemButton>
+                    <ListItemIcon>
+                        {props.subMenus
+                            ? (open ? <ExpandLessRounded className={'expandArrow'}/> :
+                                <ExpandMoreRounded className={'expandArrow'}/>)
+                            : props.icon && <props.icon/>}
+                    </ListItemIcon>
+                    <ListItemText primary={props.label}/>
+                </ListItemButton>
+            </Tooltip>
         </ListItem>
     )
 }
@@ -74,12 +104,12 @@ const NavigationItems = (props: any) => {
 
     const navItems: NavigationItemProps[] = props.navItems
     const toggleDrawer = props.toggleDrawer
+    const isDrawerOpen = props.isDrawerOpen
     const componentType = props.componentType ?? 'div'
     const isSmallScreen = useMediaQuery('(max-width:900px)')
 
 
-    const [open, setOpen] = React.useState(true)
-    const handleClick = () => setOpen(!open)
+    const [clickIndex, setClickIndex] = useState<number>(2)
 
     return (
         <List component={componentType}>
@@ -87,17 +117,20 @@ const NavigationItems = (props: any) => {
                 return (
                     navItem.subMenus &&
                     navItem.subMenus.length > 0
-                        ? <>
-                            <NavItem icon={navItem.icon} label={navItem.label} onExpandMenu={handleClick} open={open} subMenus/>
-                            <Collapse in={open} timeout="auto" unmountOnExit>
+                        ? <React.Fragment key={index}>
+                            <NavItem icon={navItem.icon} label={navItem.label} onExpandMenu={() => {
+                                setClickIndex(index)
+                                console.log(index)
+                            }} open={index == clickIndex} subMenus isDrawerOpen={isDrawerOpen}/>
+                            <Collapse in={index == clickIndex} timeout="auto" unmountOnExit>
                                 <NavigationItems navItems={navItem.subMenus} toggleDrawer={toggleDrawer}/>
                             </Collapse>
-                        </>
+                        </React.Fragment>
                         : <NavLink key={index} to={navItem.link}
                                    className={({isActive}) => isActive ? 'activeNavlink' : ''}
                                    onClick={isSmallScreen ? toggleDrawer : () => {
                                    }}>
-                            <NavItem icon={navItem.icon} label={navItem.label}/>
+                            <NavItem icon={navItem.icon} label={navItem.label} isDrawerOpen={isDrawerOpen}/>
                         </NavLink>
                 )
             })}

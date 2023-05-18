@@ -41,7 +41,7 @@ export default function Layout() {
                 flexFlow: 'column',
                 minHeight: '100vh',
                 // maxWidth: '100%'
-                maxWidth: open ? `calc(100vw - 240px)` : `calc(100vw - calc(${theme.spacing(8)} + 1px))`,
+                maxWidth: {xs: '96vw', md: open ? `calc(100vw - 240px)` : `calc(100vw - calc(${theme.spacing(9)} + 1px))`},
             },
             '& input::-webkit-file-upload-button': {
                 fontSize: '12px',
@@ -49,7 +49,14 @@ export default function Layout() {
                 background: alpha(theme.palette.primary.main, 1),
                 border: `2px solid ${theme.palette.primary.main}`,
                 color: theme.palette.primary.contrastText,
-            }
+            },
+            // '& .MuiTooltip-popper .MuiTooltip-tooltip': {
+            //     background: '#fff !important',
+            //     padding: '10px 16px',
+            //     borderRadius: '12px',
+            //     color: theme.palette.text.secondary,
+            //     boxShadow: ' 0 0 12px -3px #83838380',
+            // },
         }}>
             <ThemeDrawer open={open} toggleDrawer={toggleDrawer} setOpen={setOpen}/>
             <ThemeTopbar open={open} toggleDrawer={toggleDrawer} toggleTheme={changeColorMode}/>

@@ -26,7 +26,7 @@ import {Controller, useForm} from "react-hook-form";
 import {
     ArrowRightRounded, CloudDownloadOutlined,
     CloudUploadOutlined,
-    FileDownloadOutlined, FileUploadOutlined,
+    FileDownloadOutlined, FileUploadOutlined, Label, LabelOff, PersonAdd, PersonAddRounded, PersonRemoveRounded,
     Print, Refresh,
     Search, Sync, UploadRounded,
 } from "@mui/icons-material";
@@ -62,15 +62,24 @@ export default function Inventories() {
 
 
     const filteredInventories = useMemo(() => {
-        return inventories.filter(inventory => {
+        return inventories.filter((inventory) => {
             return Object.values({
-                id: inventory.id,
-                un_id: inventory.un_id,
+                ...inventory,
+                ...inventory.inventories,
                 category: inventory.category.name,
                 brand: inventory.brand.name,
-                sno: inventory.sno,
-            }).join(' ').toLowerCase().includes(searchKeyword.toLowerCase() ?? '')
-        })
+            }).join(' ').toLowerCase().includes(searchKeyword.toLowerCase() ?? '');
+        });
+
+        // return inventories.filter(inventory => {
+        //     return Object.values({
+        //         id: inventory.id,
+        //         un_id: inventory.un_id,
+        //         category: inventory.category.name,
+        //         brand: inventory.brand.name,
+        //         sno: inventory.sno,
+        //     }).join(' ').toLowerCase().includes(searchKeyword.toLowerCase() ?? '')
+        // })
     }, [inventories, searchKeyword])
 
     const [itemsPerPage, setItemsPerPage] = useState(10)
@@ -197,6 +206,9 @@ export default function Inventories() {
                                 <TableRow>
                                     <TableCell className={'stickyLeft'} sx={{width: '140px'}}>Asset Code</TableCell>
                                     <TableCell>Category</TableCell>
+                                    <TableCell>Status</TableCell>
+                                    <TableCell sx={{width: '180px'}}>Assigned To</TableCell>
+                                    <TableCell>Assigned Date</TableCell>
                                     <TableCell>Brand</TableCell>
                                     <TableCell>Model</TableCell>
                                     <TableCell>Serial No</TableCell>
@@ -206,19 +218,18 @@ export default function Inventories() {
                                     <TableCell>Invoice No</TableCell>
                                     <TableCell>Invoice Date</TableCell>
                                     <TableCell>Invoice Price</TableCell>
-                                    <TableCell sx={{width: '140px', textAlign: 'center'}}>Parent Asset</TableCell>
-                                    <TableCell sx={{width: '116px', textAlign: 'center'}}>Child Assets</TableCell>
-                                    <TableCell sx={{width: '180px'}}>Assigned To</TableCell>
-                                    <TableCell>Assigned Date</TableCell>
-                                    <TableCell>Undertaking</TableCell>
-                                    <TableCell className={'stickyRight'} sx={{width: '220px'}}>Status</TableCell>
+                                    {/*<TableCell sx={{width: '140px', textAlign: 'center'}}>Parent Asset</TableCell>*/}
+                                    {/*<TableCell sx={{width: '116px', textAlign: 'center'}}>Child Assets</TableCell>*/}
+
+                                    <TableCell>Email Approval</TableCell>
+                                    <TableCell className={'stickyRight'} sx={{width: '170px'}}>Action</TableCell>
                                 </TableRow>
                             </TableHead>
 
                             <TableBody>
                                 {inventoryFetching
                                     ? <TableRow>
-                                        <TableCell colSpan={16} sx={{
+                                        <TableCell colSpan={15} sx={{
                                             textAlign: 'center',
                                             py: 15,
                                         }}>
@@ -227,7 +238,7 @@ export default function Inventories() {
                                     </TableRow>
                                     : filteredInventories?.length < 1
                                         ? <TableRow>
-                                            <TableCell colSpan={16} sx={{
+                                            <TableCell colSpan={15} sx={{
                                                 textAlign: 'center',
                                                 py: 15,
                                             }}>
@@ -252,56 +263,31 @@ export default function Inventories() {
                                                     </span>
 
                                                 </TableCell>
-                                                <TableCell className={'highlighted'}>
+                                                <TableCell>
                                                     {inventory?.category?.name ?? '-'}
                                                 </TableCell>
-                                                <TableCell>
-                                                    {inventory?.brand?.name ?? '-'}
-                                                </TableCell>
-                                                <TableCell>
-                                                    {inventory?.model ?? '-'}
-                                                </TableCell>
-                                                <TableCell className={'highlighted'}>
-                                                    {inventory?.sno ?? '-'}
-                                                </TableCell>
-                                                <TableCell className={'highlighted'}>
-                                                    {inventory?.unit_price ? `₹${inventory?.unit_price}` : '-'}
-                                                </TableCell>
-                                                <TableCell className={'highlighted'}>
-                                                    {inventory?.inventories?.unit_id ?? '-'}
-                                                </TableCell>
-                                                <TableCell className={'highlighted'} sx={{
-                                                    width: '200px',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                    whiteSpace: 'nowrap',
-                                                }}>
-                                                    <Tooltip title={inventory?.inventories?.vendor_name ?? ''} arrow>
-                                                        <span>{inventory?.inventories?.vendor_name ?? '-'}</span>
-                                                    </Tooltip>
-                                                </TableCell>
-                                                <TableCell>
-                                                    {inventory?.inventories?.invoice_no ?? '-'}
-                                                </TableCell>
-                                                <TableCell className={'highlighted'}>
-                                                    {inventory?.inventories?.invoice_date
-                                                        ? moment(inventory?.inventories?.invoice_date).format('DD-MM-yyyy')
-                                                        : '-'}
-                                                </TableCell>
-                                                <TableCell className={'highlighted'}>
-                                                    {inventory?.inventories?.invoice_price
-                                                        ? `₹${inventory?.inventories?.invoice_price}`
-                                                        : '-'}
-                                                </TableCell>
 
-                                                <TableCell className={'highlighted'} sx={{textAlign: 'center'}}>
-                                                    {inventory?.asset_parent_id
-                                                        ? `FR-CHD-${inventory?.asset_parent_id}`
-                                                        : '-'}
-                                                </TableCell>
+                                                <TableCell>
+                                                    <Chip size={'small'}
+                                                        // onClick={() => {
+                                                        //     if (inventory?.status == 1 || inventory?.status == 2) {
+                                                        //         setSelectedAsset(inventory)
+                                                        //         if (inventory?.status == 2) setUnAssignStatusDialogOpen(true)
+                                                        //         else setAssignStatusDialogOpen(true)
+                                                        //     }
+                                                        // }}
+                                                          sx={{
+                                                              minWidth: '90px',
+                                                              height: '20px',
+                                                              fontSize: '11px',
+                                                              fontWeight: 600,
+                                                              borderWidth: '1.5px',
+                                                              mr: 1,
+                                                          }}
+                                                          variant={'outlined'}
+                                                          color={inventory?.status == 0 ? 'warning' : inventory?.status == 1 ? 'primary' : inventory?.status == 2 ? 'success' : 'error'}
+                                                          label={inventory?.status == 0 ? 'Cancel' : inventory?.status == 1 ? 'Unassigned' : inventory?.status == 2 ? 'Assigned' : 'Scraped'}/>
 
-                                                <TableCell className={'highlighted'} sx={{textAlign: 'center'}}>
-                                                    {inventory?.asset_children?.length}
                                                 </TableCell>
 
 
@@ -317,62 +303,60 @@ export default function Inventories() {
                                                     </Tooltip>
                                                 </TableCell>
 
-                                                <TableCell className={'highlighted'}>
-                                                    {inventory?.assigned_date ? moment(inventory?.assigned_date).format('DD-MM-yyyy') : '-'}
+                                                <TableCell>
+                                                    {inventory?.assigned_date ? moment(inventory?.assigned_date, ["DD-MM-YYYY"]).format('DD-MM-yyyy') : '-'}
                                                 </TableCell>
-                                                <TableCell sx={{textAlign: 'center'}}>
-                                                    {inventory?.undertaking_image
-                                                        ? <Tooltip title={'View uploaded Undertaking'} arrow>
-                                                            <a href={inventory?.undertaking_image} target="_blank">
-                                                                <IconButton sx={{
-                                                                    minWidth: '4.5rem',
-                                                                    fontSize: '12px',
-                                                                    borderRadius: '50vh',
-                                                                    gap: '4px',
-                                                                }}>
-                                                                    <CloudDownloadOutlined/> View
-                                                                </IconButton>
-                                                            </a>
-                                                        </Tooltip>
-                                                        : <>
-                                                            <Tooltip title={'Print Undertaking'} arrow>
-                                                                <IconButton
-                                                                    onClick={() => printUnderTaking(inventory?.id)}
-                                                                    disabled={printingUnderTaking || (inventory?.status != 2)}><Print/></IconButton>
-                                                            </Tooltip>
-                                                            <Tooltip title={'Upload Undertaking'} arrow>
-                                                                <IconButton onClick={() => {
-                                                                    setSelectedAsset(inventory)
-                                                                    setUnderTakingUploadDialogOpen(true)
-                                                                }} disabled={printingUnderTaking || (inventory?.status != 2)}>
-                                                                    <CloudUploadOutlined/>
-                                                                </IconButton>
-                                                            </Tooltip>
-                                                        </>
-                                                    }
-                                                </TableCell>
-                                                <TableCell className={'stickyRight'}>
-                                                    <Chip size={'small'}
-                                                          onClick={() => {
-                                                              if (inventory?.status == 1 || inventory?.status == 2) {
-                                                                  setSelectedAsset(inventory)
-                                                                  if (inventory?.status == 2) setUnAssignStatusDialogOpen(true)
-                                                                  else setAssignStatusDialogOpen(true)
-                                                              }
-                                                          }}
-                                                          sx={{
-                                                              minWidth: '90px',
-                                                              height: '20px',
-                                                              fontSize: '11px',
-                                                              fontWeight: 600,
-                                                              borderWidth: '1.5px',
-                                                              mr: 1,
-                                                          }}
-                                                          variant={'outlined'}
-                                                          color={inventory?.status == 0 ? 'warning' : inventory?.status == 1 ? 'primary' : inventory?.status == 2 ? 'success' : 'error'}
-                                                        // 0:cancel, 1: unassigned, 2: assigned, 3: scraped
-                                                          label={inventory?.status == 0 ? 'Cancel' : inventory?.status == 1 ? 'Unassigned' : inventory?.status == 2 ? 'Assigned' : 'Scraped'}/>
 
+                                                <TableCell>
+                                                    {inventory?.brand?.name ?? '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {inventory?.model ?? '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {inventory?.sno ?? '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {inventory?.unit_price ? `₹${inventory?.unit_price}` : '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {inventory?.inventories?.unit_id ?? '-'}
+                                                </TableCell>
+                                                <TableCell sx={{
+                                                    width: '200px',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap',
+                                                }}>
+                                                    <Tooltip title={inventory?.inventories?.vendor_name ?? ''} arrow>
+                                                        <span>{inventory?.inventories?.vendor_name ?? '-'}</span>
+                                                    </Tooltip>
+                                                </TableCell>
+                                                <TableCell>
+                                                    {inventory?.inventories?.invoice_no ?? '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {inventory?.inventories?.invoice_date
+                                                        ? moment(inventory?.inventories?.invoice_date, ["DD-MM-YYYY"]).format('DD-MM-yyyy')
+                                                        : '-'}
+                                                </TableCell>
+                                                <TableCell>
+                                                    {inventory?.inventories?.invoice_price
+                                                        ? `₹${inventory?.inventories?.invoice_price}`
+                                                        : '-'}
+                                                </TableCell>
+
+                                                {/*<TableCell className={'highlighted'} sx={{textAlign: 'center'}}>*/}
+                                                {/*    {inventory?.asset_parent_id*/}
+                                                {/*        ? `FR-CHD-${inventory?.asset_parent_id}`*/}
+                                                {/*        : '-'}*/}
+                                                {/*</TableCell>*/}
+
+                                                {/*<TableCell className={'highlighted'} sx={{textAlign: 'center'}}>*/}
+                                                {/*    {inventory?.asset_children?.length}*/}
+                                                {/*</TableCell>*/}
+
+                                                <TableCell sx={{textAlign: 'center'}}>
                                                     <Chip size={'small'}
                                                           sx={{
                                                               minWidth: '90px',
@@ -385,11 +369,73 @@ export default function Inventories() {
                                                           color={
                                                               inventory?.status == 1 && !inventory?.unassigned_date
                                                                   ? 'primary'
-                                                                  : inventory.is_approved ? 'success' : 'warning'}
+                                                                  : inventory.is_approved == 0 ? 'warning'
+                                                                  : inventory.is_approved == 1 ? 'success'
+                                                                      : 'error'}
                                                           label={
                                                               inventory?.status == 1 && !inventory?.unassigned_date
                                                                   ? 'Created'
-                                                                  : inventory.is_approved ? 'Approved' : 'Pending'}/>
+                                                                  : inventory.is_approved == 0 ? 'Pending'
+                                                                  : inventory.is_approved == 1 ? 'Approved'
+                                                                      : 'Declined'}/>
+                                                </TableCell>
+
+                                                <TableCell className={'stickyRight'}>
+                                                    <Tooltip title={'Assign Asset'} arrow>
+                                                        <IconButton
+                                                            onClick={() => {
+                                                                if (inventory?.status == 1) {
+                                                                    setSelectedAsset(inventory)
+                                                                    setAssignStatusDialogOpen(true)
+                                                                }
+                                                            }}
+                                                            disabled={(inventory?.status != 1) || (inventory?.status == 3)}><PersonAddRounded/></IconButton>
+                                                    </Tooltip>
+                                                    <Tooltip title={'Unassign Asset'} arrow>
+                                                        <IconButton
+                                                            onClick={() => {
+                                                                if (inventory?.status == 2) {
+                                                                    setSelectedAsset(inventory)
+                                                                    setUnAssignStatusDialogOpen(true)
+                                                                }
+                                                            }}
+                                                            disabled={(inventory?.status != 2) || (inventory?.status == 3)}>
+                                                            <PersonRemoveRounded/>
+                                                        </IconButton>
+                                                    </Tooltip>
+
+                                                    {inventory?.undertaking_image
+                                                        ? <Tooltip title={'View uploaded Undertaking'} arrow>
+                                                            <a href={inventory?.undertaking_image} target="_blank">
+                                                                <IconButton sx={{
+                                                                    minWidth: '4rem',
+                                                                    fontSize: '12px',
+                                                                    borderRadius: '50vh',
+                                                                    gap: '4px',
+                                                                }}>
+                                                                    <CloudDownloadOutlined/> View
+                                                                </IconButton>
+                                                            </a>
+                                                        </Tooltip>
+                                                        : <>
+                                                            <Tooltip title={'Print Undertaking'} arrow>
+                                                                <IconButton
+                                                                    onClick={() => printUnderTaking(inventory?.id)}
+                                                                    disabled={printingUnderTaking || (inventory?.status != 2) || (inventory?.status == 3)}><Print/></IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip title={'Upload Undertaking'} arrow>
+                                                                <IconButton onClick={() => {
+                                                                    setSelectedAsset(inventory)
+                                                                    setUnderTakingUploadDialogOpen(true)
+                                                                }}
+                                                                            disabled={printingUnderTaking || (inventory?.status != 2) || (inventory?.status == 3)}>
+                                                                    <CloudUploadOutlined/>
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                        </>
+                                                    }
+
+
                                                 </TableCell>
                                             </TableRow>
                                         ))}

@@ -168,15 +168,15 @@ export default function CreateInventory() {
                 if (res.data?.status == true) {
                     reset();
                     dispatch(updateSnackbarMessage({
-                        title: 'Updated!',
-                        message: 'User updated successfully!',
+                        title: 'Created!',
+                        message: 'Asset created successfully!',
                         severity: 'success'
                     }))
                     navigate('/inventories')
                 } else {
                     dispatch(updateSnackbarMessage({
                         title: 'Updated Failed',
-                        message: 'User updated failed...',
+                        message: 'Asset update failed...',
                         severity: 'error'
                     }))
                 }
@@ -434,7 +434,7 @@ export default function CreateInventory() {
                                                                startAdornment={<InputAdornment
                                                                    position="start"><Attachment/></InputAdornment>}
                                                                required
-                                                               inputProps={{accept: 'image/png, image/jpeg, image/jpg'}}
+                                                               inputProps={{accept: 'image/png, image/jpeg, image/jpg, application/pdf'}}
                                                                type={'file'}  {...register(`inventoryItems.${index}.invc_image`, {required: true})}/>
                                                         <FormHelperText
                                                             id={`invoice-image-text-${index}`}>{Boolean(errors?.inventoryItems?.[index]?.invc_image) && 'Required'}</FormHelperText>
@@ -575,7 +575,7 @@ export default function CreateInventory() {
                                                    startAdornment={<InputAdornment
                                                        position="start"><Attachment/></InputAdornment>}
                                                    required
-                                                   inputProps={{accept: 'image/png, image/jpeg, image/jpg'}}
+                                                   inputProps={{accept: 'image/png, image/jpeg, image/jpg, application/pdf'}}
                                                    type={'file'}  {...register('invoice_image', {required: true})}/>
                                             <FormHelperText
                                                 id="invoice-image-text">{Boolean(errors?.invoice_image) && 'Required'}</FormHelperText>

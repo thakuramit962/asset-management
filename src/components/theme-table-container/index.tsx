@@ -3,7 +3,8 @@ import {alpha, lighten, styled, TableContainer, useMediaQuery} from "@mui/materi
 
 export const ThemeTableContainer = styled(TableContainer)(({theme}) => ({
     minHeight: '300px',
-    width: 'calc(100% - 2rem)',
+    width: '-webkit-fill-available',
+    // width: 'calc(100% - 2rem)',
     overflowY: 'clip',
     borderRadius: '12px',
     boxShadow: '0 0 12px #83838360',
@@ -62,9 +63,10 @@ export const ThemeTableContainer = styled(TableContainer)(({theme}) => ({
         },
         '& .MuiIconButton-root': {
             height: '1.5rem',
-            width: '1.5rem',
+            width: '2rem',
             color: theme.palette.primary.main,
             transition: 'all 300ms ease-in-out',
+            borderRadius: '50vh',
             '&:hover': {
                 boxShadow: '0 0 12px -4px inset',
             },

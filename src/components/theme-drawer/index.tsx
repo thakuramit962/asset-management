@@ -156,7 +156,7 @@ export default function ThemeDrawer(props: any) {
 
             <GlobalSearch sxProps={{width: 'min(95%, 350px)', mx: 'auto', display: {xs: 'flex', sm: 'none'}}}/>
 
-            <DrawerItems toggleDrawer={toggleDrawer}/>
+            <DrawerItems toggleDrawer={toggleDrawer} isDrawerOpen={open}/>
         </Drawer>
     )
 }

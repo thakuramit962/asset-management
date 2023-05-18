@@ -19,6 +19,7 @@ import SingleAsset from "../pages/inventories/single-asset";
 export default function WebRoutes() {
 
     const initialMode = useSelector((state: RootState) => state.colorMode.mode)
+    const user = useSelector((state: RootState) => state.userAuth?.currentUser)
 
     const theme = useMemo(() =>
             createTheme({
@@ -60,6 +61,14 @@ export default function WebRoutes() {
                             },
                         },
                     },
+                    MuiTooltip:{
+                        styleOverrides:{
+                            tooltip: {
+                                padding: '6px 14px',
+                                borderRadius: '10px',
+                            }
+                        }
+                    }
                 },
             }),
         [initialMode],
@@ -70,19 +79,31 @@ export default function WebRoutes() {
             <CssBaseline/>
             <Routes>
                 <Route path="login" element={<Login/>}/>
-                <Route path="*" element={<h1>No Page Found</h1>} />
+                <Route path="*" element={<h1>No Page Found</h1>}/>
                 <Route element={<ProtectedRouteAuthCheck/>}>
                     <Route path="/" element={<Layout/>}>
                         <Route path="" element={<Dashboard/>}/>
                         <Route path="inventories" element={<Inventories/>}/>
                         <Route path="inventories/:inventoryId" element={<SingleAsset/>}/>
                         <Route path="create-inventory" element={<CreateInventory/>}/>
-                        <Route path="categories" element={<AssetCategories/>}/>
-                        <Route path="brands" element={<Brands/>}/>
+                        <Route path="assign-asset" element={<h1>Assign-asset</h1>}/>
+                        <Route path="pullback-asset" element={<h1>Pullback-asset</h1>}/>
+                        <Route path="scrap-asset" element={<h1>Scrap-asset</h1>}/>
+
                         <Route path="configurations" element={<h1>configurations</h1>}/>
+                        <Route path="undertakings" element={<h1>Undertakings</h1>}/>
                         <Route path="demo" element={<TestPages/>}/>
-                        <Route path="users" element={<Users/>}/>
-                        <Route path="create-user" element={<CreateUser/>}/>
+
+                        {user?.role_id == '1' &&
+                        <>
+                            <Route path="users" element={<Users/>}/>
+                            <Route path="create-user" element={<CreateUser/>}/>
+                            <Route path="categories" element={<AssetCategories/>}/>
+                            <Route path="brands" element={<Brands/>}/>
+                        </>
+                        }
+
+
                     </Route>
                 </Route>
             </Routes>
