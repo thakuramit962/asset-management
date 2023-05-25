@@ -5,6 +5,7 @@ import {useDispatch} from "react-redux";
 import {Add, FormatQuoteRounded} from "@mui/icons-material";
 import PageContainer from "../../components/containers/page-container";
 import {useNavigate} from "react-router-dom";
+import API from "../../api";
 
 
 const Dashboard = () => {
@@ -21,15 +22,14 @@ const Dashboard = () => {
         "Love the life you live. Live the life you love.",
     ]
 
-    const blocks = [
-        {name: 'Total Assets', value: 7637, color: "#BACDDB"},
-        {name: 'Assigned Assets', value: 7637, color: "#539165"},
-        {name: 'Un-assigned Assets', value: 7637, color: '#E5BA73'},
-        {name: 'Scrapped Assets', value: 7637, color: "#FF6969"},
-    ]
+    const demoApiCall = () => {
+        API.get(`/brands`)
+            .finally(()=>console.log('api called'))
+    }
 
     useEffect(() => {
         dispatch(updatePageTitle('Dashboard'))
+        demoApiCall()
     }, [])
 
     return (
@@ -58,9 +58,10 @@ const Dashboard = () => {
                 </Box>
 
                 <Box sx={{
+                    maxWidth: '768px',
                     padding: 2,
-                    // margin: 'auto',
-                    flex: '1',
+                    margin: 'auto',
+                    // flex: '1 1 768px',
                     borderRadius: '20px',
                     position: 'relative',
                     px: {xs: '1rem', sm: '3rem', md: '6rem'},
@@ -68,8 +69,8 @@ const Dashboard = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    // alignSelf: 'flex-end',
-                    boxShadow: '0 0 17px -3px #83838380',
+                    justifySelf: 'flex-end',
+                    // boxShadow: '0 0 17px -3px #83838380',
                     '& .quote': {
                         fontSize: 'clamp(4rem, 10vw, 5.2rem)',
                         position: 'absolute',

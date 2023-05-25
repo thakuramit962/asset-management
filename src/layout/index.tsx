@@ -40,8 +40,9 @@ export default function Layout() {
                 display: 'flex',
                 flexFlow: 'column',
                 minHeight: '100vh',
+                mx: 'auto',
                 // maxWidth: '100%'
-                maxWidth: {xs: '96vw', md: open ? `calc(100vw - 240px)` : `calc(100vw - calc(${theme.spacing(9)} + 1px))`},
+                maxWidth: {xs: 'calc(100vw - 1rem)', md: open ? `calc(100vw - 240px)` : `calc(100vw - calc(${theme.spacing(9)} + 1px))`},
             },
             '& input::-webkit-file-upload-button': {
                 fontSize: '12px',
@@ -61,7 +62,7 @@ export default function Layout() {
             <ThemeDrawer open={open} toggleDrawer={toggleDrawer} setOpen={setOpen}/>
             <ThemeTopbar open={open} toggleDrawer={toggleDrawer} toggleTheme={changeColorMode}/>
             <Box component="main">
-                <Toolbar variant={'dense'}/>
+                <Toolbar sx={{mb: 1}}/>
                 <Outlet/>
             </Box>
             <ThemeSnackbar message={errorMessage}/>

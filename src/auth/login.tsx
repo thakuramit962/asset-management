@@ -65,8 +65,11 @@ export default function Login() {
                 }
             })
             .catch((err) => {
-                setSubmitting(false)
-                console.error(JSON.stringify(err))
+                dispatch(updateSnackbarMessage({
+                    title: 'Something bad at our end',
+                    message: 'Please try again, Its a fault at our end.',
+                    severity: 'error'
+                }))
             }).finally(() => setSubmitting(false))
 
     }

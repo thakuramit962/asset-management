@@ -147,7 +147,7 @@ export default function CreateUser() {
                         <Controller
                             name={`branch_id`}
                             control={control}
-                            rules={{required: {value: true, message: 'Required'}}}
+                            rules={{required: {value: false, message: 'Required'}}}
                             render={({field}) => (
                                 <ThemeTextField
                                     {...field} select required

@@ -43,6 +43,7 @@ const billToUnits = [
     {id: 'MA2', name: 'MA2'},
     {id: 'SD3', name: 'SD3'},
     {id: 'MA4', name: 'MA4'},
+    {id: 'XYZ', name: 'XYZ'},
 ]
 
 export default function CreateInventory() {
@@ -61,9 +62,11 @@ export default function CreateInventory() {
     const [vendors, setVendors] = useState<any[]>([])
     const [categories, setCategories] = useState<optionData[]>([])
 
+    const isVendorSelectable = (unit == 'SD1' || unit == 'SD3' || unit == 'MA2' || unit == 'MA4' || unit == '')
+
     const inventoryItem = {sno: '', category_id: '', brand_id: '', model: '', unit_price: '', invc_image: ''}
 
-    const {control, reset, register, handleSubmit, setError, watch, clearErrors, formState: {errors}} = useForm({
+    const {control, reset, register, setValue, handleSubmit, setError, watch, clearErrors, formState: {errors}} = useForm({
         defaultValues: {
             vendor_id: '',
             unit_id: '',
@@ -72,6 +75,7 @@ export default function CreateInventory() {
             invoice_price: '',
             invoice_image: '',
             invoice_count: '',
+            description: '',
             inventoryItems: [{...inventoryItem}]
         }
     })
@@ -116,7 +120,6 @@ export default function CreateInventory() {
             .finally(() => setFetchingVendors(false))
     }, [unit])
 
-
     const watchItems = watch('inventoryItems')
 
     const isUniqueSno = (sno: string, inputName: any) => {
@@ -151,11 +154,13 @@ export default function CreateInventory() {
         const newData = {
             ...data,
             unit_id: unit,
-            vendor_id: data.vendor_id.value,
-            vendor_name: data.vendor_id.name,
             invoice_date: moment(data.invoice_date).format('DD-MM-YYYY'),
             invoice_image: data.invoice_image[0],
             invoice_count: fields.length,
+            ...(isVendorSelectable
+                    ? {vendor_id: data.vendor_id.value, vendor_name: data.vendor_id.name}
+                    : {vendor_name: data.vendor_id}
+            ),
             itemImages
         }
 
@@ -194,9 +199,7 @@ export default function CreateInventory() {
 
     return (
         <PageContainer>
-            <Container sx={{
-                height: '100%',
-            }}>
+            <Container>
                 {
                     fetchingRequires
                         ? <LoadingView/>
@@ -420,7 +423,7 @@ export default function CreateInventory() {
                                                                 error={Boolean(errors?.inventoryItems?.[index]?.unit_price)}
                                                                 helperText={errors?.inventoryItems?.[index]?.unit_price?.message}
                                                                 size={'small'} label={'Unit Price'}
-                                                                className={'price'}
+                                                                className={'price'} type={'number'}
                                                                 placeholder={'price'}/>
                                                         )}/>
 
@@ -466,10 +469,6 @@ export default function CreateInventory() {
                                         mb: 4,
                                     }}>
 
-                                        {/*<Controller name={`unit_id`}*/}
-                                        {/*            control={control}*/}
-                                        {/*            rules={{required: {value: true, message: 'Required'}}}*/}
-                                        {/*            defaultValue={''} render={({field}) => (*/}
                                         <ThemeTextField
                                             select required
                                             error={Boolean(errors?.unit_id)}
@@ -480,38 +479,54 @@ export default function CreateInventory() {
                                             onChange={(e) => {
                                                 setUnit(e.target.value)
                                                 fetchVendors(e.target.value)
+                                                setValue( 'vendor_id', '' )
                                             }}
                                             placeholder={'Select Unit'}>
                                             {billToUnits?.map((unit, index) => (
                                                 <MenuItem key={index} value={unit.id}>{unit.name}</MenuItem>
                                             ))}
                                         </ThemeTextField>
-                                        {/*)}/>*/}
 
-                                        <Controller name={`vendor_id`}
-                                                    control={control}
-                                                    rules={{required: {value: true, message: 'Required'}}}
-                                                    defaultValue={''} render={({field: {onChange, value}}) => (
-                                            <Autocomplete size={'small'}
-                                                          className={'formItem'}
-                                                          onChange={(e, data) => onChange(data)}
-                                                          loading={fetchingVendors}
-                                                          options={vendors.map((vendor) => ({
-                                                              label: `${vendor.id} - ${vendor.vname}`,
-                                                              value: vendor.id,
-                                                              name: vendor.vname
-                                                          }))}
-                                                          isOptionEqualToValue={((option, value) => option.value == value.value)}
-                                                          renderInput={(params) => (
-                                                              <ThemeTextField
-                                                                  {...params} required
-                                                                  error={Boolean(errors?.vendor_id)}
-                                                                  helperText={errors?.vendor_id?.message}
-                                                                  size={'small'} label={'Vendors'}
-                                                                  placeholder={'Select vendor'}
-                                                              />
-                                                          )}/>
-                                        )}/>
+                                        {isVendorSelectable
+                                            ? <Controller name={`vendor_id`}
+                                                          control={control}
+                                                          rules={{required: {value: true, message: 'Required'}}}
+                                                          defaultValue={''} render={({field: {onChange, value}}) => (
+                                                <Autocomplete size={'small'}
+                                                              className={'formItem'}
+                                                              onChange={(e, data) => onChange(data)}
+                                                              loading={fetchingVendors}
+                                                              options={vendors.map((vendor) => ({
+                                                                  label: `${vendor.id} - ${vendor.vname}`,
+                                                                  value: vendor.id,
+                                                                  name: vendor.vname
+                                                              }))}
+                                                              isOptionEqualToValue={((option, value) => option.value == value.value)}
+                                                              renderInput={(params) => (
+                                                                  <ThemeTextField
+                                                                      {...params} required
+                                                                      error={Boolean(errors?.vendor_id)}
+                                                                      helperText={errors?.vendor_id?.message}
+                                                                      size={'small'} label={'Vendors'}
+                                                                      placeholder={'Select vendor'}
+                                                                  />
+                                                              )}/>
+                                            )}/>
+                                            : <Controller
+                                                name={`vendor_id`}
+                                                control={control}
+                                                rules={{required: {value: true, message: 'Required'}}}
+                                                render={({field}) => (
+                                                    <ThemeTextField
+                                                        {...field} required
+                                                        error={Boolean(errors?.vendor_id)}
+                                                        helperText={errors?.vendor_id?.message}
+                                                        className={'formItem'}
+                                                        size={'small'} label={'Vendor'}
+                                                        placeholder={'Enter vendor'}
+                                                    />
+                                                )}/>
+                                        }
 
 
                                         <Controller
@@ -569,7 +584,7 @@ export default function CreateInventory() {
                                         )}/>
 
                                         <FormControl className={'fileInput formItem'}
-                                                     error={Boolean(errors?.invoice_image)}>
+                                                     error={Boolean(errors?.invoice_image)} sx={{mb: 3,}}>
                                             <InputLabel htmlFor="invoice_image">Invoice Image*</InputLabel>
                                             <Input id="invoice_image" aria-describedby="invoice-image-text"
                                                    startAdornment={<InputAdornment
@@ -579,9 +594,21 @@ export default function CreateInventory() {
                                                    type={'file'}  {...register('invoice_image', {required: true})}/>
                                             <FormHelperText
                                                 id="invoice-image-text">{Boolean(errors?.invoice_image) && 'Required'}</FormHelperText>
-                                            {/*<Attachment/>*/}
                                         </FormControl>
 
+
+                                        <Controller
+                                            name={`description`}
+                                            control={control}
+                                            rules={{required: {value: false, message: 'Required'}}} render={({field}) => (
+                                            <ThemeTextField
+                                                {...field} error={Boolean(errors?.description)}
+                                                helperText={errors?.description?.message}
+                                                size={'small'} multiline rows={2}
+                                                label={'Remarks'}
+                                                className={'formItem'}
+                                                placeholder={'Enter remarks'}/>
+                                        )}/>
 
                                     </Box>
 

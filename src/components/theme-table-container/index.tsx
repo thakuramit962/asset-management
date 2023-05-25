@@ -1,14 +1,11 @@
-import {alpha, lighten, styled, TableContainer, useMediaQuery} from "@mui/material"
+import {lighten, styled, TableContainer} from "@mui/material"
 
 
 export const ThemeTableContainer = styled(TableContainer)(({theme}) => ({
-    minHeight: '300px',
+    minHeight: '290px',
     width: '-webkit-fill-available',
-    // width: 'calc(100% - 2rem)',
     overflowY: 'clip',
-    borderRadius: '12px',
-    boxShadow: '0 0 12px #83838360',
-    margin: '1rem',
+    margin: '0.5rem 1rem',
     '& .MuiTable-root': {
         minWidth: 'max-content !important',
         '& .MuiTableCell-root': {
@@ -21,12 +18,19 @@ export const ThemeTableContainer = styled(TableContainer)(({theme}) => ({
         },
         '& .MuiTableHead-root': {
             '& .MuiTableRow-root': {
-                backgroundColor: theme.palette.primary.main,
+                backgroundColor: theme.palette.mode == 'dark'
+                    ? lighten(theme.palette.text.secondary, 0.9)
+                    : lighten(theme.palette.text.secondary, 0.9),
+                // backgroundColor: theme.palette.primary.main,
                 '& *': {
-                    color: theme.palette.primary.contrastText,
+                    fontWeight: 600,
+                    // color: theme.palette.primary.contrastText,
                 },
                 '& .MuiTableCell-root': {
-                    backgroundColor: theme.palette.primary.main,
+                    borderBottom: '1px solid',
+                    backgroundColor: theme.palette.mode == 'dark'
+                        ? '#3f3f3f'
+                        : '#ededed',
                 },
             },
         },
@@ -74,29 +78,34 @@ export const ThemeTableContainer = styled(TableContainer)(({theme}) => ({
                 height: '16px',
                 width: '16px',
             },
-            '&:has(svg[data-testid="DeleteOutlinedIcon"])': {
+            '&:has(svg[data-testid="DeleteOutlinedIcon"]):not(:disabled)': {
                 color: theme.palette.error.dark
             },
             '&:not(:last-of-type)': {
                 // marginRight: '8px',
             },
-            '&.Mui-disabled':{
+            '&.Mui-disabled': {
                 color: theme.palette.text.disabled,
             },
         },
-        ['@media (max-width:600px)']: {
+    },
+    ['@media (max-width:600px)']: {
+        margin: '0.5rem 0',
+        '& .MuiTable-root': {
             '& .stickyRight': {
                 position: 'relative',
                 '&:after': {
                     display: 'none',
                 },
             },
-            '& .stickyLeft': {
-                position: 'relative',
-                '&:after': {
-                    display: 'none',
-                },
-            },
+            // '& .stickyLeft': {
+            //     position: 'relative',
+            //     '&:after': {
+            //         display: 'none',
+            //     },
+            // },
         },
     },
+
+
 }))

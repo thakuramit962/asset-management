@@ -1,43 +1,42 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react'
+import React, {useCallback, useEffect, useState} from 'react'
 import PageContainer from "../../components/containers/page-container"
 import {updatePageTitle} from "../../slices/page-title-slice"
-import {useDispatch} from "react-redux"
+import {useDispatch, useSelector} from "react-redux"
 import {
     alpha,
     Autocomplete,
     Box,
-    Button, Chip, Container, Divider, FormControl, FormControlLabel, FormLabel, Icon,
+    Button, Checkbox, Chip,
     IconButton,
-    InputAdornment, MenuItem,
-    Paper, Radio, RadioGroup, SelectChangeEvent, Stack, SvgIcon,
-    Table, TableBody, TableCell, TableContainer,
-    TableHead, TablePagination,
-    TableRow, Tooltip,
+    InputAdornment, MenuItem, Skeleton, Stack, Tab,
+    Table, TableBody, TableCell,
+    TableHead,
+    TableRow, Tabs, Tooltip,
     Typography,
     useTheme
 } from "@mui/material"
 import ThemeFab from "../../components/button/theme-fab";
-import {Link, useNavigate} from "react-router-dom";
+import {useNavigate} from "react-router-dom";
 import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
-import {downloadFile, serverRoute} from "../../utils/app-helper";
+import {assetStatuses, downloadFile, serverRoute} from "../../utils/app-helper";
 import ThemeDialog from "../../components/dialog-box/theme-dialog";
 import {LoadingButton, Pagination} from "@mui/lab";
 import {Controller, useForm} from "react-hook-form";
 import {
-    ArrowRightRounded, CloudDownloadOutlined,
-    CloudUploadOutlined,
-    FileDownloadOutlined, FileUploadOutlined, Label, LabelOff, PersonAdd, PersonAddRounded, PersonRemoveRounded,
-    Print, Refresh,
-    Search, Sync, UploadRounded,
+    ArrowRightRounded, AssignmentReturnedRounded, AssignmentTurnedInRounded, CloudDownloadOutlined,
+    CloudUploadOutlined, Delete, DeleteOutlined,
+    FileDownloadOutlined, FileUploadOutlined, PersonAddRounded, PersonRemoveRounded,
+    Print, RestoreFromTrashRounded,
+    Search, Sync,
 } from "@mui/icons-material";
 import {LoadingItem} from "../../components/loading-view";
 import {ThemeTableContainer} from "../../components/theme-table-container";
-import {Inventory} from "../../models/inventory";
-import usePagination from "../../hooks/use-pagination";
+import {SingleInventory} from "../../models/inventory";
 import {ThemeTextField} from "../../components/inputs/theme-text-field";
 import moment from "moment";
 import notifyBell from "../../assets/images/notify.png";
-import API from "../../api";
+import API from "../../api"
+import {RootState} from "../../store/store";
 
 
 export default function Inventories() {
@@ -46,62 +45,76 @@ export default function Inventories() {
     const dispatch = useDispatch()
     const navigate = useNavigate()
 
+    const currentUser = useSelector((state: RootState) => state.userAuth?.currentUser)
+
+    const itUser = currentUser?.role_id == '2'
+    const hrUser = currentUser?.role_id == '3'
+
+    const [currentPage, setCurrentPage] = useState(1)
+
 
     const [searchKeyword, setSearchKeyword] = useState<string>('')
     const [inventoryFetching, setInventoryFetching] = useState<boolean>(true)
-    const [inventories, setInventories] = useState<Inventory[]>([])
-    const [selectedAsset, setSelectedAsset] = useState<Inventory>({} as Inventory)
+    const [inventories, setInventories] = useState<any>({} as any)
+    const [selectedAsset, setSelectedAsset] = useState<SingleInventory>({} as SingleInventory)
     const [printingUnderTaking, setPrintingUnderTaking] = useState<boolean>(false)
     const [exporting, setExporting] = useState<boolean>(false)
     const [underTakingUploadDialogOpen, setUnderTakingUploadDialogOpen] = useState<boolean>(false)
     const [assignStatusDialogOpen, setAssignStatusDialogOpen] = useState<boolean>(false)
-    const [unAssignStatusDialogOpen, setUnAssignStatusDialogOpen] = useState<boolean>(false)
+    const [requestRecoverAssetDialogOpen, setRequestRecoverAsset] = useState<boolean>(false)
     const [importDialogOpen, setImportDialogOpen] = useState<boolean>(false)
-    const closeUnAssignStatusDialog = () => setUnAssignStatusDialogOpen(false)
-    const closeAssignStatusDialog = () => setAssignStatusDialogOpen(false)
+    const [sendEmailToEmployeeDialogOpen, setSendEmailToEmployeeDialogOpen] = useState<boolean>(false)
+    const [pullBackAssetDialog, setPullBackAssetDialog] = useState<boolean>(false)
+    const [unAssignAssetDialog, setUnAssignAssetDialog] = useState<boolean>(false)
+    const [scrapRequestAssetDialog, setScrapRequestAssetDialog] = useState<boolean>(false)
+    const [scrapAssetDialog, setScrapAssetDialog] = useState<boolean>(false)
+    const [completeRecoverAssetDialog, setCompleteRecoverAssetDialog] = useState<boolean>(false)
 
 
-    const filteredInventories = useMemo(() => {
-        return inventories.filter((inventory) => {
-            return Object.values({
-                ...inventory,
-                ...inventory.inventories,
-                category: inventory.category.name,
-                brand: inventory.brand.name,
-            }).join(' ').toLowerCase().includes(searchKeyword.toLowerCase() ?? '');
-        });
+    const [openDialog, setOpenDialog] = useState(false)
 
-        // return inventories.filter(inventory => {
-        //     return Object.values({
-        //         id: inventory.id,
-        //         un_id: inventory.un_id,
-        //         category: inventory.category.name,
-        //         brand: inventory.brand.name,
-        //         sno: inventory.sno,
-        //     }).join(' ').toLowerCase().includes(searchKeyword.toLowerCase() ?? '')
-        // })
-    }, [inventories, searchKeyword])
+    const closeDialog = () => {
+        setOpenDialog(false)
+        setRequestRecoverAsset(false)
+        setImportDialogOpen(false)
+        setUnderTakingUploadDialogOpen(false)
+        setAssignStatusDialogOpen(false)
+        setSendEmailToEmployeeDialogOpen(false)
+        setPullBackAssetDialog(false)
+        setUnAssignAssetDialog(false)
+        setScrapRequestAssetDialog(false)
+        setScrapAssetDialog(false)
+        setCompleteRecoverAssetDialog(false)
+    }
 
-    const [itemsPerPage, setItemsPerPage] = useState(10)
-    const {currentPage, getCurrentData, setCurrentPage, pageCount} = usePagination(filteredInventories, itemsPerPage)
-    const inventoryList = getCurrentData()
+    const defaultAssetStatus = itUser ? 1 : hrUser ? 4 : 0
+
+    const [assetStatus, setAssetStatus] = useState<number>(defaultAssetStatus)
+
+    const [itemsPerPage, setItemsPerPage] = useState(50)
 
     const onChangeItemsPerPage = (event: any) => {
         setItemsPerPage(+event.target.value)
         setCurrentPage(1)
+        fetchInventory(undefined, searchKeyword, assetStatus == 0 ? undefined : assetStatus, +event.target.value)
     }
 
-    const fetchInventory = useCallback(() => {
+    const fetchInventory = useCallback((pageNumber?: number, searchKeyword?: string, assetStatus?: number | undefined, itemsPerPage?: number) => {
         setInventoryFetching(true)
-        API.get(`/inventories`)
+        API.get(`/inventories`, {
+            params: {
+                page: pageNumber,
+                searchKeyword: searchKeyword,
+                assetStatus: assetStatus,
+                perItem: itemsPerPage,
+            }
+        })
             .then((res) => {
-                if (res.data?.status == true) console.log('inventory', res.data?.data)
-                if (res.data?.status == true) setInventories(res.data?.data)
-                // else console.log('some error occured')
+                if (res.data?.status == true) setInventories(res.data.data)
             })
             .catch((err) => console.error(JSON.stringify(err)))
             .finally(() => setInventoryFetching(false))
-    }, [])
+    }, [currentPage, itemsPerPage, assetStatus])
 
     const exportInventory = () => {
         setExporting(true)
@@ -129,7 +142,7 @@ export default function Inventories() {
 
     useEffect(() => {
         dispatch(updatePageTitle('Inventory List'))
-        fetchInventory()
+        fetchInventory(undefined, undefined, defaultAssetStatus == 0 ? undefined : defaultAssetStatus, itemsPerPage)
     }, [])
 
     return (
@@ -138,10 +151,10 @@ export default function Inventories() {
                 <>
                     <Stack direction={'row'}
                            sx={{
-                               mt: 2,
+                               mt: {xs: 0, sm: 2},
                                mx: 'auto',
                                width: 'calc(100% - 2rem)',
-                               flexWrap: 'wrap',
+                               flexWrap: 'wrap-reverse',
                                rowGap: '8px',
                                justifyContent: 'space-between',
                            }}>
@@ -150,9 +163,14 @@ export default function Inventories() {
                             size={'small'}
                             sx={{
                                 minHeight: 'max-content',
-                                maxWidth: '350px'
+                                maxWidth: {xs: '100%', sm: '350px'}
                             }}
-                            onChange={(e) => setSearchKeyword(e.target.value)}
+                            value={searchKeyword}
+                            autoComplete={'off'}
+                            onChange={(e) => {
+                                setSearchKeyword(e.target.value)
+                                fetchInventory(undefined, `${e.target.value}`, assetStatus == 0 ? undefined : assetStatus)
+                            }}
                             InputProps={{
                                 startAdornment: (
                                     <InputAdornment position="start">
@@ -160,7 +178,7 @@ export default function Inventories() {
                                     </InputAdornment>
                                 ),
                             }}
-                            placeholder={'Search entries...'}
+                            placeholder={'Search assets...'}
                         />
 
                         <Stack direction={'row'} sx={{
@@ -168,7 +186,9 @@ export default function Inventories() {
                             gap: 2,
                             justifyContent: 'flex-end',
                             '& .MuiButton-root': {
-                                textTransform: 'none'
+                                textTransform: 'none',
+                                flex: {xs: 1, sm: 'auto'},
+                                maxWidth: {xs: 'auto', sm: '110px'}
                             },
                         }}>
                             <LoadingButton
@@ -179,7 +199,11 @@ export default function Inventories() {
                                 onClick={exportInventory}>
                                 Export
                             </LoadingButton>
-                            <Button variant={'contained'} onClick={() => setImportDialogOpen(true)} sx={{
+                            {itUser &&
+                            <Button variant={'contained'} onClick={() => {
+                                setOpenDialog(true)
+                                setImportDialogOpen(true)
+                            }} sx={{
                                 '& svg': {
                                     fontSize: '20px',
                                     marginRight: '6px',
@@ -187,11 +211,46 @@ export default function Inventories() {
                             }}>
                                 <FileUploadOutlined/> Import
                             </Button>
-
-                            <IconButton onClick={fetchInventory}><Sync/></IconButton>
+                            }
+                            <IconButton onClick={() => {
+                                setSearchKeyword('')
+                                fetchInventory(undefined, '', assetStatus == 0 ? undefined : assetStatus)
+                            }}><Sync/></IconButton>
                         </Stack>
 
                     </Stack>
+
+                    <Box sx={{
+                        marginTop: 3,
+                        maxWidth: '96%',
+                        '& .MuiTabs-root': {
+                            minHeight: '32px'
+                        },
+                        '& .MuiButtonBase-root': {
+                            textTransform: 'none',
+                            minWidth: 'max-content',
+                            py: 0,
+                            minHeight: '32px',
+                            fontSize: '12px'
+                        },
+                    }}>
+                        <Tabs
+                            value={assetStatus}
+                            onChange={(e, newValue: number) => {
+                                setAssetStatus(newValue)
+                                newValue == 0
+                                    ? fetchInventory(undefined, searchKeyword)
+                                    : fetchInventory(undefined, searchKeyword, +(e.currentTarget.id))
+                            }}
+                            variant="scrollable"
+                            scrollButtons="auto"
+                            aria-label="asset status tabs"
+                        >
+                            {assetStatuses.map((status, index) => (
+                                <Tab label={status.label} id={`${status.code}`} key={index}/>
+                            ))}
+                        </Tabs>
+                    </Box>
 
                     <ThemeTableContainer sx={{
                         '& .MuiTableCell-root': {
@@ -200,13 +259,23 @@ export default function Inventories() {
                                 fontWeight: 600
                             },
                         },
+                        '& .MuiCheckbox-root': {
+                            padding: '2px',
+                            '& svg': {
+                                height: '17px',
+                                width: '17px',
+                            },
+                        },
                     }}>
                         <Table sx={{minWidth: 650}} size={'small'}>
                             <TableHead>
                                 <TableRow>
+                                    {assetStatus == 2 &&
+                                    <TableCell><Checkbox size={'small'}/></TableCell>
+                                    }
                                     <TableCell className={'stickyLeft'} sx={{width: '140px'}}>Asset Code</TableCell>
                                     <TableCell>Category</TableCell>
-                                    <TableCell>Status</TableCell>
+                                    <TableCell sx={{width: '120px'}}>Status</TableCell>
                                     <TableCell sx={{width: '180px'}}>Assigned To</TableCell>
                                     <TableCell>Assigned Date</TableCell>
                                     <TableCell>Brand</TableCell>
@@ -229,21 +298,21 @@ export default function Inventories() {
                             <TableBody>
                                 {inventoryFetching
                                     ? <TableRow>
-                                        <TableCell colSpan={15} sx={{
+                                        <TableCell colSpan={8} sx={{
                                             textAlign: 'center',
                                             py: 15,
                                         }}>
                                             <LoadingItem/>
                                         </TableCell>
                                     </TableRow>
-                                    : filteredInventories?.length < 1
+                                    : inventories?.data?.length < 1
                                         ? <TableRow>
-                                            <TableCell colSpan={15} sx={{
+                                            <TableCell colSpan={8} sx={{
                                                 textAlign: 'center',
                                                 py: 15,
                                             }}>
                                                 No Data<br/><br/>
-                                                <IconButton onClick={fetchInventory} sx={{
+                                                <IconButton onClick={() => fetchInventory()} sx={{
                                                     fontSize: '12px',
                                                     minWidth: '4rem',
                                                     borderRadius: '50vh'
@@ -251,8 +320,13 @@ export default function Inventories() {
 
                                             </TableCell>
                                         </TableRow>
-                                        : inventoryList?.map((inventory, index) => (
+                                        : inventories?.data?.map((inventory: any, index: number) => (
                                             <TableRow key={index}>
+                                                {assetStatus == 2 &&
+                                                <TableCell>
+                                                    <Checkbox size={'small'} className={'bulkChecks'}/>
+                                                </TableCell>
+                                                }
                                                 <TableCell className={'highlighted stickyLeft'}
                                                            sx={{
                                                                cursor: 'pointer',
@@ -269,15 +343,8 @@ export default function Inventories() {
 
                                                 <TableCell>
                                                     <Chip size={'small'}
-                                                        // onClick={() => {
-                                                        //     if (inventory?.status == 1 || inventory?.status == 2) {
-                                                        //         setSelectedAsset(inventory)
-                                                        //         if (inventory?.status == 2) setUnAssignStatusDialogOpen(true)
-                                                        //         else setAssignStatusDialogOpen(true)
-                                                        //     }
-                                                        // }}
                                                           sx={{
-                                                              minWidth: '90px',
+                                                              minWidth: '110px',
                                                               height: '20px',
                                                               fontSize: '11px',
                                                               fontWeight: 600,
@@ -285,11 +352,19 @@ export default function Inventories() {
                                                               mr: 1,
                                                           }}
                                                           variant={'outlined'}
-                                                          color={inventory?.status == 0 ? 'warning' : inventory?.status == 1 ? 'primary' : inventory?.status == 2 ? 'success' : 'error'}
-                                                          label={inventory?.status == 0 ? 'Cancel' : inventory?.status == 1 ? 'Unassigned' : inventory?.status == 2 ? 'Assigned' : 'Scraped'}/>
+                                                          color={inventory?.status == 3 ? 'error' : 'primary'}
+                                                          label={inventory?.status == 1 ? 'Unassigned'
+                                                              : inventory?.status == 2 ? 'Assigned'
+                                                                  : inventory?.status == 3 ? 'Scraped'
+                                                                      : inventory?.status == 4 ? 'HR Handover'
+                                                                          : inventory?.status == 5 ? 'Emp Handover'
+                                                                              : inventory?.status == 6 ? 'Req Recovery'
+                                                                                  : inventory?.status == 7 ? 'Recovery Com'
+                                                                                      : inventory?.status == 8 ? 'Scrap Request'
+                                                                                          : inventory?.status == 9 ? 'Ready to Scrap'
+                                                                                              : 'Cancel'}/>
 
                                                 </TableCell>
-
 
                                                 <TableCell sx={{
                                                     width: '180px',
@@ -346,16 +421,6 @@ export default function Inventories() {
                                                         : '-'}
                                                 </TableCell>
 
-                                                {/*<TableCell className={'highlighted'} sx={{textAlign: 'center'}}>*/}
-                                                {/*    {inventory?.asset_parent_id*/}
-                                                {/*        ? `FR-CHD-${inventory?.asset_parent_id}`*/}
-                                                {/*        : '-'}*/}
-                                                {/*</TableCell>*/}
-
-                                                {/*<TableCell className={'highlighted'} sx={{textAlign: 'center'}}>*/}
-                                                {/*    {inventory?.asset_children?.length}*/}
-                                                {/*</TableCell>*/}
-
                                                 <TableCell sx={{textAlign: 'center'}}>
                                                     <Chip size={'small'}
                                                           sx={{
@@ -381,59 +446,202 @@ export default function Inventories() {
                                                 </TableCell>
 
                                                 <TableCell className={'stickyRight'}>
-                                                    <Tooltip title={'Assign Asset'} arrow>
-                                                        <IconButton
-                                                            onClick={() => {
-                                                                if (inventory?.status == 1) {
-                                                                    setSelectedAsset(inventory)
-                                                                    setAssignStatusDialogOpen(true)
-                                                                }
-                                                            }}
-                                                            disabled={(inventory?.status != 1) || (inventory?.status == 3)}><PersonAddRounded/></IconButton>
-                                                    </Tooltip>
-                                                    <Tooltip title={'Unassign Asset'} arrow>
-                                                        <IconButton
-                                                            onClick={() => {
-                                                                if (inventory?.status == 2) {
-                                                                    setSelectedAsset(inventory)
-                                                                    setUnAssignStatusDialogOpen(true)
-                                                                }
-                                                            }}
-                                                            disabled={(inventory?.status != 2) || (inventory?.status == 3)}>
-                                                            <PersonRemoveRounded/>
-                                                        </IconButton>
-                                                    </Tooltip>
 
-                                                    {inventory?.undertaking_image
-                                                        ? <Tooltip title={'View uploaded Undertaking'} arrow>
-                                                            <a href={inventory?.undertaking_image} target="_blank">
-                                                                <IconButton sx={{
-                                                                    minWidth: '4rem',
-                                                                    fontSize: '12px',
-                                                                    borderRadius: '50vh',
-                                                                    gap: '4px',
-                                                                }}>
-                                                                    <CloudDownloadOutlined/> View
+                                                    {itUser ? <>
+                                                            <Tooltip arrow title={'Handover to HR'}>
+                                                                <IconButton disabled={inventory?.status != 1}
+                                                                            onClick={() => {
+                                                                                if (inventory?.status == 1) {
+                                                                                    setOpenDialog(true)
+                                                                                    setSelectedAsset(inventory)
+                                                                                    setAssignStatusDialogOpen(true)
+                                                                                }
+                                                                            }}>
+                                                                    <PersonAddRounded/>
                                                                 </IconButton>
-                                                            </a>
-                                                        </Tooltip>
-                                                        : <>
-                                                            <Tooltip title={'Print Undertaking'} arrow>
-                                                                <IconButton
-                                                                    onClick={() => printUnderTaking(inventory?.id)}
-                                                                    disabled={printingUnderTaking || (inventory?.status != 2) || (inventory?.status == 3)}><Print/></IconButton>
                                                             </Tooltip>
-                                                            <Tooltip title={'Upload Undertaking'} arrow>
-                                                                <IconButton onClick={() => {
-                                                                    setSelectedAsset(inventory)
-                                                                    setUnderTakingUploadDialogOpen(true)
-                                                                }}
-                                                                            disabled={printingUnderTaking || (inventory?.status != 2) || (inventory?.status == 3)}>
-                                                                    <CloudUploadOutlined/>
+                                                            <Tooltip arrow title={'Un assign Asset'}>
+                                                                <IconButton disabled={inventory?.status != 7}
+                                                                            onClick={() => {
+                                                                                if (inventory?.status == 7) {
+                                                                                    setOpenDialog(true)
+                                                                                    setSelectedAsset(inventory)
+                                                                                    setUnAssignAssetDialog(true)
+                                                                                }
+                                                                            }}>
+                                                                    <PersonRemoveRounded/>
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip arrow title={'Request for scrap'}>
+                                                                <IconButton disabled={inventory?.status != 1}
+                                                                            sx={{
+                                                                                '&:not(:disabled) svg': {
+                                                                                    color: theme.palette.warning.dark
+                                                                                },
+                                                                            }}
+                                                                            onClick={() => {
+                                                                                if (inventory?.status == 1) {
+                                                                                    setOpenDialog(true)
+                                                                                    setSelectedAsset(inventory)
+                                                                                    setScrapRequestAssetDialog(true)
+                                                                                }
+                                                                            }}>
+                                                                    <RestoreFromTrashRounded/>
+                                                                </IconButton>
+                                                            </Tooltip>
+                                                            <Tooltip arrow title={'Scrap Asset'}>
+                                                                <IconButton disabled={inventory?.status != 9}
+                                                                            sx={{color: `${theme.palette.error.main}`}}
+                                                                            onClick={() => {
+                                                                                if (inventory?.status == 9) {
+                                                                                    setOpenDialog(true)
+                                                                                    setSelectedAsset(inventory)
+                                                                                    setScrapAssetDialog(true)
+                                                                                }
+                                                                            }}>
+                                                                    <DeleteOutlined/>
                                                                 </IconButton>
                                                             </Tooltip>
                                                         </>
+                                                        : hrUser ? <>
+                                                                <Tooltip arrow title={'Handover to Employee'}>
+                                                                    <IconButton disabled={inventory?.status != 4}
+                                                                                onClick={() => {
+                                                                                    if (inventory?.status == 4) {
+                                                                                        setOpenDialog(true)
+                                                                                        setSelectedAsset(inventory)
+                                                                                        setSendEmailToEmployeeDialogOpen(true)
+                                                                                    }
+                                                                                }}>
+                                                                        <PersonAddRounded/>
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                                <Tooltip arrow title={'Request for recovery'}>
+                                                                    <IconButton disabled={inventory?.status != 2}
+                                                                                onClick={() => {
+                                                                                    if (inventory?.status == 2) {
+                                                                                        setOpenDialog(true)
+                                                                                        setSelectedAsset(inventory)
+                                                                                        setRequestRecoverAsset(true)
+                                                                                    }
+                                                                                }}>
+                                                                        <AssignmentReturnedRounded/>
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                                <Tooltip arrow title={'Recover Complete'}>
+                                                                    <IconButton disabled={inventory?.status != 6}
+                                                                                onClick={() => {
+                                                                                    if (inventory?.status == 6) {
+                                                                                        setOpenDialog(true)
+                                                                                        setSelectedAsset(inventory)
+                                                                                        setCompleteRecoverAssetDialog(true)
+                                                                                    }
+                                                                                }}>
+                                                                        <AssignmentTurnedInRounded/>
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                                <Tooltip arrow title={'Print Undertaking'}>
+                                                                    <IconButton disabled={inventory?.status != 2}
+                                                                                onClick={() => {
+                                                                                    if (inventory?.status == 2) {
+                                                                                        printUnderTaking(inventory?.id)
+                                                                                    }
+                                                                                }}>
+                                                                        <Print/>
+                                                                    </IconButton>
+                                                                </Tooltip>
+                                                            </>
+                                                            : <>No Action</>
                                                     }
+
+
+                                                    {/*{*/}
+                                                    {/*    itUser*/}
+                                                    {/*        ? <Tooltip arrow title={'Handover to HR'}>*/}
+                                                    {/*            <IconButton disabled={(hrUser || inventory?.status != 1)}*/}
+                                                    {/*                        onClick={() => {*/}
+                                                    {/*                            setOpenDialog(true)*/}
+                                                    {/*                            if (itUser && inventory?.status == 1) {*/}
+                                                    {/*                                setSelectedAsset(inventory)*/}
+                                                    {/*                                setAssignStatusDialogOpen(true)*/}
+                                                    {/*                            }*/}
+                                                    {/*                        }}>*/}
+                                                    {/*                <PersonAddRounded/>*/}
+                                                    {/*            </IconButton>*/}
+                                                    {/*        </Tooltip>*/}
+                                                    {/*        : hrUser*/}
+                                                    {/*        ? <Tooltip arrow title={'Handover to Employee'}>*/}
+                                                    {/*            <IconButton*/}
+                                                    {/*                disabled={(itUser || inventory?.status != 4)}*/}
+                                                    {/*                onClick={() => {*/}
+                                                    {/*                    setOpenDialog(true)*/}
+                                                    {/*                    if (hrUser && inventory?.status == 4) {*/}
+                                                    {/*                        setSelectedAsset(inventory)*/}
+                                                    {/*                        setSendEmailToEmployeeDialogOpen(true)*/}
+                                                    {/*                    }*/}
+                                                    {/*                    if (inventory?.status == 9) {*/}
+                                                    {/*                        setSelectedAsset(inventory)*/}
+                                                    {/*                        setScrapAssetDialog(true)*/}
+                                                    {/*                    }*/}
+                                                    {/*                }}>*/}
+                                                    {/*                <PersonAddRounded/>*/}
+                                                    {/*            </IconButton>*/}
+                                                    {/*        </Tooltip>*/}
+                                                    {/*        : <></>*/}
+                                                    {/*}*/}
+
+                                                    {/*<Tooltip title={'Unassign Asset'} arrow>*/}
+                                                    {/*    <IconButton disabled={!(hrUser || inventory?.status != 2)}*/}
+                                                    {/*                onClick={() => {*/}
+                                                    {/*                    setOpenDialog(true)*/}
+                                                    {/*                    if (hrUser && inventory?.status == 2) {*/}
+                                                    {/*                        setSelectedAsset(inventory)*/}
+                                                    {/*                        setRequestRecoverAsset(true)*/}
+                                                    {/*                    }*/}
+                                                    {/*                    if (inventory?.status == 7) {*/}
+                                                    {/*                        setSelectedAsset(inventory)*/}
+                                                    {/*                        setUnAssignAssetDialog(true)*/}
+                                                    {/*                    }*/}
+                                                    {/*                    if (inventory?.status == 1) {*/}
+                                                    {/*                        setSelectedAsset(inventory)*/}
+                                                    {/*                        setScrapRequestAssetDialog(true)*/}
+                                                    {/*                    }*/}
+                                                    {/*                }}>*/}
+                                                    {/*        <PersonRemoveRounded/>*/}
+                                                    {/*    </IconButton>*/}
+                                                    {/*</Tooltip>*/}
+
+                                                    {/*{inventory?.undertaking_image*/}
+                                                    {/*    ? <Tooltip title={'View uploaded Undertaking'} arrow>*/}
+                                                    {/*        <a href={inventory?.undertaking_image} target="_blank">*/}
+                                                    {/*            <IconButton sx={{*/}
+                                                    {/*                minWidth: '4rem',*/}
+                                                    {/*                fontSize: '12px',*/}
+                                                    {/*                borderRadius: '50vh',*/}
+                                                    {/*                gap: '4px',*/}
+                                                    {/*            }}>*/}
+                                                    {/*                <CloudDownloadOutlined/> View*/}
+                                                    {/*            </IconButton>*/}
+                                                    {/*        </a>*/}
+                                                    {/*    </Tooltip>*/}
+                                                    {/*    : <>*/}
+                                                    {/*        <Tooltip title={'Print Undertaking'} arrow>*/}
+                                                    {/*            <IconButton*/}
+                                                    {/*                onClick={() => printUnderTaking(inventory?.id)}*/}
+                                                    {/*                disabled={printingUnderTaking || (inventory?.status != 2) || (inventory?.status == 3)}><Print/></IconButton>*/}
+                                                    {/*        </Tooltip>*/}
+                                                    {/*        <Tooltip title={'Upload Undertaking'} arrow>*/}
+                                                    {/*            <IconButton onClick={() => {*/}
+                                                    {/*                setSelectedAsset(inventory)*/}
+                                                    {/*                setOpenDialog(true)*/}
+                                                    {/*                setUnderTakingUploadDialogOpen(true)*/}
+                                                    {/*            }}*/}
+                                                    {/*                        disabled={printingUnderTaking || (inventory?.status != 2) || (inventory?.status == 3)}>*/}
+                                                    {/*                <CloudUploadOutlined/>*/}
+                                                    {/*            </IconButton>*/}
+                                                    {/*        </Tooltip>*/}
+                                                    {/*    </>*/}
+                                                    {/*}*/}
 
 
                                                 </TableCell>
@@ -443,7 +651,7 @@ export default function Inventories() {
                         </Table>
                     </ThemeTableContainer>
 
-                    {inventories?.length > 0 &&
+                    {inventories?.data?.length > 0 &&
                     <Box sx={{
                         pt: 3,
                         px: 3,
@@ -459,7 +667,7 @@ export default function Inventories() {
                                         onChange={onChangeItemsPerPage}>
                             {[
                                 {label: '10', value: 10},
-                                {label: '20', value: 20},
+                                {label: '25', value: 25},
                                 {label: '50', value: 50},
                                 {label: '100', value: 100},
                             ]?.map((role, index) => (
@@ -474,13 +682,21 @@ export default function Inventories() {
                             justifyContent: 'center',
                         }}>
                             <Pagination
-                                count={pageCount}
-                                onChange={(_, newPage) => setCurrentPage(newPage)}
-                                page={(currentPage > pageCount) ? 1 : currentPage}
-                                // showFirstButton
-                                // showLastButton
+                                showFirstButton showLastButton count={inventories.last_page} page={currentPage}
+                                onChange={(event: React.ChangeEvent<unknown>, value: number) => {
+                                    setCurrentPage(value)
+                                    fetchInventory(value)
+                                }}
                                 sx={{ml: {xs: 0, sm: 5}}}
                             />
+                            {/*<Pagination*/}
+                            {/*    count={pageCount}*/}
+                            {/*    onChange={(_, newPage) => setCurrentPage(newPage)}*/}
+                            {/*    page={(currentPage > pageCount) ? 1 : currentPage}*/}
+                            {/*    // showFirstButton*/}
+                            {/*    // showLastButton*/}
+                            {/*    sx={{ml: {xs: 0, sm: 5}}}*/}
+                            {/*/>*/}
                         </Box>
                     </Box>
                     }
@@ -488,34 +704,46 @@ export default function Inventories() {
             </PageContainer>
 
 
-            {assignStatusDialogOpen &&
-            <ThemeDialog open={assignStatusDialogOpen}
-                         dialogBody={<AssignStatusForm closeDialog={closeAssignStatusDialog}
-                                                       assetId={selectedAsset.id} onCompletion={fetchInventory}/>}/>
-            }
-
-
-            {unAssignStatusDialogOpen &&
-            <ThemeDialog open={unAssignStatusDialogOpen}
-                         dialogBody={<UnAssignStatusForm closeDialog={closeUnAssignStatusDialog}
-                                                         asset={selectedAsset} onCompletion={fetchInventory}/>}/>
-            }
-
-            {importDialogOpen &&
-            <ThemeDialog open={importDialogOpen}
-                         dialogBody={<ImportForm setDialogOpen={setImportDialogOpen} title={'Import Inventory'}
-                                                 api={'inventory/bulk-upload'} onCompletion={fetchInventory}
-                                                 accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"/>}/>
-            }
-
-
-            {underTakingUploadDialogOpen &&
-            <ThemeDialog open={underTakingUploadDialogOpen}
-                         dialogBody={<ImportForm setDialogOpen={setUnderTakingUploadDialogOpen}
-                                                 title={'Upload Undertaking'} onCompletion={fetchInventory}
-                                                 accept={'image/png, image/jpeg, image/jpg'}
-                                                 api={`undertaking-upload/${selectedAsset.id}`}/>}
-            />
+            {openDialog &&
+            <ThemeDialog open={openDialog}
+                         dialogBody={
+                             assignStatusDialogOpen ?
+                                 <TagEmployeeForm closeDialog={closeDialog} assetId={selectedAsset.id}
+                                                  onCompletion={fetchInventory}/>
+                                 : sendEmailToEmployeeDialogOpen ?
+                                 <SendEmailToEmployee closeDialog={closeDialog} asset={selectedAsset}
+                                                      onCompletion={fetchInventory}/>
+                                 : requestRecoverAssetDialogOpen ?
+                                     <RequestRecoverAsset closeDialog={closeDialog} asset={selectedAsset}
+                                                          onCompletion={fetchInventory}/>
+                                     : importDialogOpen ?
+                                         <ImportForm closeDialog={closeDialog} title={'Import Inventory'}
+                                                     api={'inventory/bulk-upload'} onCompletion={fetchInventory}
+                                                     accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"/>
+                                         : underTakingUploadDialogOpen ?
+                                             <ImportForm closeDialog={closeDialog}
+                                                         title={'Upload Undertaking'} onCompletion={fetchInventory}
+                                                         accept={'image/png, image/jpeg, image/jpg'}
+                                                         api={`undertaking-upload/${selectedAsset.id}`}/>
+                                             : pullBackAssetDialog ?
+                                                 <SendEmailToEmployee closeDialog={closeDialog} asset={selectedAsset}
+                                                                      onCompletion={fetchInventory}/>
+                                                 : unAssignAssetDialog ?
+                                                     <UnAssignAssetForm closeDialog={closeDialog} asset={selectedAsset}
+                                                                        onCompletion={fetchInventory}/>
+                                                     : scrapRequestAssetDialog ?
+                                                         <RequestScrapAsset closeDialog={closeDialog}
+                                                                            asset={selectedAsset}
+                                                                            onCompletion={fetchInventory}/>
+                                                         : scrapAssetDialog ?
+                                                             <ScrapAsset closeDialog={closeDialog} asset={selectedAsset}
+                                                                         onCompletion={fetchInventory}/>
+                                                             : completeRecoverAssetDialog ?
+                                                                 <CompleteRecoverAsset closeDialog={closeDialog}
+                                                                                       asset={selectedAsset}
+                                                                                       onCompletion={fetchInventory}/>
+                                                                 : <></>
+                         }/>
             }
 
 
@@ -525,7 +753,7 @@ export default function Inventories() {
 }
 
 
-const AssignStatusForm = (props: any) => {
+const TagEmployeeForm = (props: any) => {
 
     const {closeDialog, assetId, onCompletion} = props
     const dispatch = useDispatch()
@@ -556,12 +784,9 @@ const AssignStatusForm = (props: any) => {
 
     const onSubmit = (data: any) => {
         setLoading(true)
-        let newData = {}
-        if (assetValue != 'assign')
-            newData = {asset_id: assetId, status: 3, remarks: data.remarks}
-        else newData = {
+        const newData = {
             asset_id: assetId,
-            status: 2,
+            status: 4, // Handover to HR
             assign_emp_id: data.employee_id.value,
             assign_emp_name: data.employee_id.name,
             remarks: data.remarks
@@ -573,8 +798,8 @@ const AssignStatusForm = (props: any) => {
                     onCompletion()
                     reset();
                     dispatch(updateSnackbarMessage({
-                        title: 'Updated!',
-                        message: 'Asset updated successfully!',
+                        title: 'Success',
+                        message: 'Asset handover to HR successfully!',
                         severity: 'success'
                     }))
                     closeDialog()
@@ -603,11 +828,11 @@ const AssignStatusForm = (props: any) => {
     }, [])
 
     return (
-        <Box sx={{width: '95vw', maxWidth: '700px'}}>
+        <Box sx={{width: {xS: '100%', md: 'min(calc(95vw - 70px), 700px)'}}}>
             <Typography variant={'h6'} sx={{
                 fontSize: '1.2rem',
                 mb: 3,
-            }}>Change Asset Status</Typography>
+            }}>Handover Asset to HR</Typography>
 
             <Box component={'form'} sx={{
                 display: 'flex',
@@ -628,15 +853,6 @@ const AssignStatusForm = (props: any) => {
                     // maxWidth: '600px',
                     mx: 'auto',
                 }}>
-
-                    <FormControl sx={{mb: 3,}}>
-                        <FormLabel id="asset_status" sx={{fontSize: '13px', fontWeight: 600}}>Choose Status</FormLabel>
-                        <RadioGroup row aria-labelledby="asset_status" name="asset_status" value={assetValue}
-                                    onChange={handleChange}>
-                            <FormControlLabel value="assign" control={<Radio size={'small'}/>} label="Assign"/>
-                            <FormControlLabel value="scrap" control={<Radio size={'small'}/>} label="Scrap"/>
-                        </RadioGroup>
-                    </FormControl>
 
                     <Controller name={`employee_id`}
                                 control={control}
@@ -696,6 +912,121 @@ const AssignStatusForm = (props: any) => {
                     <LoadingButton onClick={resetAndClose} disabled={loading}>Discard & Close</LoadingButton>
                     <LoadingButton onClick={handleSubmit(onSubmit)} variant={'contained'}
                                    loading={loading} sx={{minWidth: {xs: 'min-content', sm: '150px'}}}>
+                        Handover <ArrowRightRounded/>
+                    </LoadingButton>
+                </Box>
+            </Box>
+
+        </Box>
+    )
+}
+
+const SendEmailToEmployee = (props: any) => {
+
+    const {closeDialog, asset, onCompletion} = props
+    const dispatch = useDispatch()
+    const empId = asset?.assign_emp_id
+
+    const [loading, setLoading] = useState<boolean>(false)
+    const [fetchingEmployee, setFetchingEmployee] = useState<boolean>(false)
+    const [employee, setEmployee] = useState<any>({} as any)
+
+
+    async function fetchEmployeeDetail() {
+        setFetchingEmployee(true)
+        try {
+            let fetchedData = await fetch(`https://test-courier.easemyorder.com/api/get-employee-detail/${empId}`)
+            const fetchedResponse = await fetchedData.json()
+            console.log('ss', fetchedResponse)
+            setEmployee(fetchedResponse.data)
+            setFetchingEmployee(false)
+        } catch (error) {
+            console.log(error);
+            setFetchingEmployee(false)
+        }
+    }
+
+    const onSubmit = () => {
+        setLoading(true)
+        const newData = {
+            asset_id: asset.id,
+            emp_email: employee?.personal_email_id,
+            // status: 5, // Handover to Emp
+        }
+
+        API.post(`/handover-employee`, newData)
+            .then((res) => {
+                if (res.data?.status == true) {
+                    onCompletion()
+                    dispatch(updateSnackbarMessage({
+                        title: 'Tagged to Employee!',
+                        message: 'Asset tagged successfully!',
+                        severity: 'success'
+                    }))
+                    closeDialog()
+                } else dispatch(updateSnackbarMessage({
+                    title: 'Updated Failed',
+                    message: 'Asset updated failed...',
+                    severity: 'error'
+                }))
+            })
+            .catch((err) => console.error(JSON.stringify(err)))
+            .finally(() => setLoading(false))
+    }
+
+    const resetAndClose = () => closeDialog()
+
+
+    useEffect(() => {
+        fetchEmployeeDetail()
+    }, [])
+
+    return (
+        <Box sx={{width: {xs: '100%', md: 'min(calc(95vw - 70px), 700px)'}}}>
+            <Typography variant={'h6'} sx={{
+                fontSize: '1.2rem',
+                mb: 3,
+            }}>Tagged Asset Details</Typography>
+
+            <Box component={'form'} sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexFlow: 'column',
+                gap: 3,
+                minHeight: 'min(40vh, 500px)',
+            }}>
+                <Box sx={{
+                    flex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-start',
+                    alignContent: 'flex-start',
+                    justifyContent: 'flex-start',
+                    columnGap: '1rem',
+                    // maxWidth: '600px',
+                    mx: 'auto',
+                }}>
+
+                    {fetchingEmployee
+                        ? <Skeleton variant="rectangular" width={'100%'} height={'140px'}/>
+                        : `asset Details with employee id ${employee?.personal_email_id}`
+                    }
+
+                </Box>
+
+
+                <Box sx={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                }}>
+                    <LoadingButton onClick={resetAndClose} disabled={loading}>Discard & Close</LoadingButton>
+                    <LoadingButton onClick={onSubmit} variant={'contained'} disabled={fetchingEmployee}
+                                   loading={loading} sx={{minWidth: {xs: 'min-content', sm: '150px'}}}>
                         Update <ArrowRightRounded/>
                     </LoadingButton>
                 </Box>
@@ -705,28 +1036,39 @@ const AssignStatusForm = (props: any) => {
     )
 }
 
-
-const UnAssignStatusForm = (props: any) => {
+const RequestRecoverAsset = (props: any) => {
 
     const {closeDialog, asset, onCompletion} = props
     const dispatch = useDispatch()
+    const empId = asset?.assign_emp_id
 
     const {control, handleSubmit, setValue, reset, formState: {errors}} = useForm()
     const [loading, setLoading] = useState<boolean>(false)
+    const [fetchingEmployee, setFetchingEmployee] = useState<boolean>(false)
+    const [employee, setEmployee] = useState<any>({} as any)
 
+    async function fetchEmployeeDetail() {
+        setFetchingEmployee(true)
+        try {
+            let fetchedData = await fetch(`https://test-courier.easemyorder.com/api/get-employee-detail/${empId}`)
+            const fetchedResponse = await fetchedData.json()
+            console.log('ss', fetchedResponse)
+            setEmployee(fetchedResponse.data)
+            setFetchingEmployee(false)
+        } catch (error) {
+            console.log(error);
+            setFetchingEmployee(false)
+        }
+    }
 
     const onSubmit = (data: any) => {
         setLoading(true)
         let newData = {
             asset_id: asset?.id,
-            status: 1,
-            remarks: data.remarks,
-            assign_emp_name: '',
-            assign_emp_id: '',
-            assigned_date: '',
+            emp_email: employee?.personal_email_id,
         }
 
-        API.post(`/update-assign-status`, newData)
+        API.post(`/pullback-employee`, newData)
             .then((res) => {
                 if (res.data?.status == true) {
                     onCompletion()
@@ -754,8 +1096,12 @@ const UnAssignStatusForm = (props: any) => {
         closeDialog()
     }
 
+    useEffect(() => {
+        fetchEmployeeDetail()
+    }, [])
+
     return (
-        <Box sx={{width: '95vw', maxWidth: '500px'}}>
+        <Box sx={{width: {xS: '100%', md: 'min(calc(95vw - 70px), 500px)'}}}>
 
             <Box component={'form'} sx={{
                 display: 'flex',
@@ -789,8 +1135,238 @@ const UnAssignStatusForm = (props: any) => {
                         mb: 3,
                         textAlign: 'center'
                     }}>
-                        Unassign <strong>FR-CHD-{asset?.un_id}</strong> <br/>
+                        request Recover <strong>FR-CHD-{asset?.un_id}</strong> <br/>
                         from <strong>{asset?.assign_emp_name}</strong> ?</Typography>
+
+                </Box>
+
+
+                <Box sx={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                }}>
+                    <LoadingButton onClick={resetAndClose} disabled={loading}>Discard & Close</LoadingButton>
+                    <LoadingButton onClick={handleSubmit(onSubmit)} variant={'contained'} disabled={fetchingEmployee}
+                                   loading={loading} sx={{minWidth: {xs: 'min-content', sm: '150px'}}}>
+                        Un-assign <ArrowRightRounded/>
+                    </LoadingButton>
+                </Box>
+            </Box>
+
+        </Box>
+    )
+}
+
+const CompleteRecoverAsset = (props: any) => {
+
+    const {closeDialog, asset, onCompletion} = props
+    const dispatch = useDispatch()
+    const empId = asset?.assign_emp_id
+
+    const {control, handleSubmit, setValue, reset, formState: {errors}} = useForm()
+    const [loading, setLoading] = useState<boolean>(false)
+    const [fetchingEmployee, setFetchingEmployee] = useState<boolean>(false)
+    const [employee, setEmployee] = useState<any>({} as any)
+
+    async function fetchEmployeeDetail() {
+        setFetchingEmployee(true)
+        try {
+            let fetchedData = await fetch(`https://test-courier.easemyorder.com/api/get-employee-detail/${empId}`)
+            const fetchedResponse = await fetchedData.json()
+            console.log('ss', fetchedResponse)
+            setEmployee(fetchedResponse.data)
+            setFetchingEmployee(false)
+        } catch (error) {
+            console.log(error);
+            setFetchingEmployee(false)
+        }
+    }
+
+    const onSubmit = (data: any) => {
+        setLoading(true)
+        let newData = {
+            asset_id: asset?.id,
+        }
+
+        API.post(`/accept-pullback`, newData)
+            .then((res) => {
+                if (res.data?.status == true) {
+                    onCompletion()
+                    reset()
+                    dispatch(updateSnackbarMessage({
+                        title: 'Updated!',
+                        message: 'Asset updated successfully!',
+                        severity: 'success'
+                    }))
+                    closeDialog()
+                } else {
+                    dispatch(updateSnackbarMessage({
+                        title: 'Updated Failed',
+                        message: 'Asset updated failed...',
+                        severity: 'error'
+                    }))
+                }
+            })
+            .catch((err) => console.error(JSON.stringify(err)))
+            .finally(() => setLoading(false))
+    }
+
+    const resetAndClose = () => {
+        setValue('remarks', '')
+        closeDialog()
+    }
+
+    useEffect(() => {
+        fetchEmployeeDetail()
+    }, [])
+
+    return (
+        <Box sx={{width: {xS: '100%', md: 'min(calc(95vw - 70px), 500px)'}}}>
+
+            <Box component={'form'} sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexFlow: 'column',
+                gap: 3,
+                minHeight: 'min(40vh, 500px)',
+            }}>
+                <Box sx={{
+                    flex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-start',
+                    alignContent: 'flex-start',
+                    justifyContent: 'center',
+                    columnGap: '1rem',
+                    // maxWidth: '600px',
+                    mx: 'auto',
+                    '& img': {
+                        maxHeight: '80px',
+                        mb: 2,
+                    },
+                }}>
+
+                    <img src={notifyBell} alt={'notify'}/>
+
+                    <Typography variant={'h6'} sx={{
+                        width: '100%',
+                        fontSize: '1.2rem',
+                        mb: 3,
+                        textAlign: 'center'
+                    }}>
+                        Complete Recover <strong>FR-CHD-{asset?.un_id}</strong> <br/>
+                        from <strong>{asset?.assign_emp_name}</strong> ?</Typography>
+
+                </Box>
+
+
+                <Box sx={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                }}>
+                    <LoadingButton onClick={resetAndClose} disabled={loading}>Discard & Close</LoadingButton>
+                    <LoadingButton onClick={handleSubmit(onSubmit)} variant={'contained'} disabled={fetchingEmployee}
+                                   loading={loading} sx={{minWidth: {xs: 'min-content', sm: '150px'}}}>
+                        Un-assign <ArrowRightRounded/>
+                    </LoadingButton>
+                </Box>
+            </Box>
+
+        </Box>
+    )
+}
+
+const UnAssignAssetForm = (props: any) => {
+
+    const {closeDialog, asset, onCompletion} = props
+    const dispatch = useDispatch()
+
+    const {control, handleSubmit, setValue, reset, formState: {errors}} = useForm()
+    const [loading, setLoading] = useState<boolean>(false)
+
+
+    const onSubmit = (data: any) => {
+        setLoading(true)
+        let newData = {
+            asset_id: asset?.id,
+            status: 1,
+            // account_email: 'amit.thakur@eternitysolutions.net',
+        }
+
+        // API.post(`/scrap-email-request`, newData)
+        API.post(`/update-assign-status`, newData)
+            .then((res) => {
+                if (res.data?.status == true) {
+                    onCompletion()
+                    reset()
+                    dispatch(updateSnackbarMessage({
+                        title: 'Updated!',
+                        message: 'Asset updated successfully!',
+                        severity: 'success'
+                    }))
+                    closeDialog()
+                } else {
+                    dispatch(updateSnackbarMessage({
+                        title: 'Updated Failed',
+                        message: 'Asset updated failed...',
+                        severity: 'error'
+                    }))
+                }
+            })
+            .catch((err) => console.error(JSON.stringify(err)))
+            .finally(() => setLoading(false))
+    }
+
+    const resetAndClose = () => {
+        setValue('remarks', '')
+        closeDialog()
+    }
+
+    return (
+        <Box sx={{width: {xS: '100%', md: 'min(calc(95vw - 70px), 550px)'}}}>
+
+            <Box component={'form'} sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexFlow: 'column',
+                gap: 3,
+                minHeight: 'min(40vh, 500px)',
+            }}>
+                <Box sx={{
+                    flex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-start',
+                    alignContent: 'flex-start',
+                    justifyContent: 'center',
+                    columnGap: '1rem',
+                    // maxWidth: '600px',
+                    mx: 'auto',
+                    '& img': {
+                        maxHeight: '80px',
+                        mb: 2,
+                    },
+                }}>
+
+                    <img src={notifyBell} alt={'notify'}/>
+
+                    <Typography variant={'h6'} sx={{
+                        width: '100%',
+                        fontSize: '1.2rem',
+                        mb: 3,
+                        textAlign: 'center'
+                    }}>
+                        Unassign <strong>FR-CHD-{asset?.un_id}</strong> ?</Typography>
 
 
                     <Controller
@@ -831,10 +1407,250 @@ const UnAssignStatusForm = (props: any) => {
     )
 }
 
+const RequestScrapAsset = (props: any) => {
+
+    const {closeDialog, asset, onCompletion} = props
+    const dispatch = useDispatch()
+
+    const {control, handleSubmit, setValue, reset, formState: {errors}} = useForm()
+    const [loading, setLoading] = useState<boolean>(false)
+
+
+    const onSubmit = (data: any) => {
+        setLoading(true)
+        let newData = {
+            asset_id: asset?.id,
+            // status: 1,
+            account_email: 'amit.thakur@eternitysolutions.net',
+        }
+
+        API.post(`/scrap-email-request`, newData)
+            .then((res) => {
+                if (res.data?.status == true) {
+                    onCompletion()
+                    reset()
+                    dispatch(updateSnackbarMessage({
+                        title: 'Updated!',
+                        message: 'Asset updated successfully!',
+                        severity: 'success'
+                    }))
+                    closeDialog()
+                } else {
+                    dispatch(updateSnackbarMessage({
+                        title: 'Updated Failed',
+                        message: 'Asset updated failed...',
+                        severity: 'error'
+                    }))
+                }
+            })
+            .catch((err) => console.error(JSON.stringify(err)))
+            .finally(() => setLoading(false))
+    }
+
+    const resetAndClose = () => {
+        setValue('remarks', '')
+        closeDialog()
+    }
+
+    return (
+        <Box sx={{width: {xS: '100%', md: 'min(calc(95vw - 70px), 550px)'}}}>
+
+            <Box component={'form'} sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexFlow: 'column',
+                gap: 3,
+                minHeight: 'min(40vh, 500px)',
+            }}>
+                <Box sx={{
+                    flex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-start',
+                    alignContent: 'flex-start',
+                    justifyContent: 'center',
+                    columnGap: '1rem',
+                    // maxWidth: '600px',
+                    mx: 'auto',
+                    '& img': {
+                        maxHeight: '80px',
+                        mb: 2,
+                    },
+                }}>
+
+                    <img src={notifyBell} alt={'notify'}/>
+
+                    <Typography variant={'h6'} sx={{
+                        width: '100%',
+                        fontSize: '1.2rem',
+                        mb: 3,
+                        textAlign: 'center'
+                    }}>
+                        Scrap request for asset <strong>FR-CHD-{asset?.un_id}</strong> ?</Typography>
+
+
+                    <Controller
+                        name={`remarks`}
+                        control={control}
+                        rules={{required: {value: true, message: 'Required'}}}
+                        render={({field}) => (
+                            <ThemeTextField
+                                {...field} required multiline rows={4}
+                                error={Boolean(errors?.remarks)}
+                                helperText={(errors?.remarks?.message ?? '').toString()}
+                                size={'small'} label={'Remarks'}
+                                sx={{flex: 1, minWidth: {xs: '100%', sm: '100%'}}}
+                                placeholder={'remarks...'}
+                            />
+                        )}/>
+
+                </Box>
+
+
+                <Box sx={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                }}>
+                    <LoadingButton onClick={resetAndClose} disabled={loading}>Discard & Close</LoadingButton>
+                    <LoadingButton onClick={handleSubmit(onSubmit)} variant={'contained'}
+                                   loading={loading} sx={{minWidth: {xs: 'min-content', sm: '150px'}}}>
+                        Un-assign <ArrowRightRounded/>
+                    </LoadingButton>
+                </Box>
+            </Box>
+
+        </Box>
+    )
+}
+
+const ScrapAsset = (props: any) => {
+
+    const {closeDialog, asset, onCompletion} = props
+    const dispatch = useDispatch()
+
+    const {control, handleSubmit, setValue, reset, formState: {errors}} = useForm()
+    const [loading, setLoading] = useState<boolean>(false)
+
+
+    const onSubmit = (data: any) => {
+        setLoading(true)
+        let newData = {
+            asset_id: asset?.id,
+            status: 3,
+        }
+
+        API.post(`/update-assign-status`, newData)
+            .then((res) => {
+                if (res.data?.status == true) {
+                    onCompletion()
+                    reset()
+                    dispatch(updateSnackbarMessage({
+                        title: 'Updated!',
+                        message: 'Asset updated successfully!',
+                        severity: 'success'
+                    }))
+                    closeDialog()
+                } else {
+                    dispatch(updateSnackbarMessage({
+                        title: 'Updated Failed',
+                        message: 'Asset updated failed...',
+                        severity: 'error'
+                    }))
+                }
+            })
+            .catch((err) => console.error(JSON.stringify(err)))
+            .finally(() => setLoading(false))
+    }
+
+    const resetAndClose = () => {
+        setValue('remarks', '')
+        closeDialog()
+    }
+
+    return (
+        <Box sx={{width: {xS: '100%', md: 'min(calc(95vw - 70px), 550px)'}}}>
+
+            <Box component={'form'} sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                flexFlow: 'column',
+                gap: 3,
+                minHeight: 'min(40vh, 500px)',
+            }}>
+                <Box sx={{
+                    flex: 1,
+                    width: '100%',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    alignItems: 'flex-start',
+                    alignContent: 'flex-start',
+                    justifyContent: 'center',
+                    columnGap: '1rem',
+                    // maxWidth: '600px',
+                    mx: 'auto',
+                    '& img': {
+                        maxHeight: '80px',
+                        mb: 2,
+                    },
+                }}>
+
+                    <img src={notifyBell} alt={'notify'}/>
+
+                    <Typography variant={'h6'} sx={{
+                        width: '100%',
+                        fontSize: '1.2rem',
+                        mb: 3,
+                        textAlign: 'center'
+                    }}>
+                        Scrap asset <strong>FR-CHD-{asset?.un_id}</strong> ?</Typography>
+
+
+                    <Controller
+                        name={`remarks`}
+                        control={control}
+                        rules={{required: {value: true, message: 'Required'}}}
+                        render={({field}) => (
+                            <ThemeTextField
+                                {...field} required multiline rows={4}
+                                error={Boolean(errors?.remarks)}
+                                helperText={(errors?.remarks?.message ?? '').toString()}
+                                size={'small'} label={'Remarks'}
+                                sx={{flex: 1, minWidth: {xs: '100%', sm: '100%'}}}
+                                placeholder={'remarks...'}
+                            />
+                        )}/>
+
+                </Box>
+
+
+                <Box sx={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    flexWrap: 'wrap',
+                    justifyContent: 'flex-end',
+                    gap: 2,
+                }}>
+                    <LoadingButton onClick={resetAndClose} disabled={loading}>Discard & Close</LoadingButton>
+                    <LoadingButton onClick={handleSubmit(onSubmit)} variant={'contained'}
+                                   loading={loading} sx={{minWidth: {xs: 'min-content', sm: '150px'}}}>
+                        Scrap <ArrowRightRounded/>
+                    </LoadingButton>
+                </Box>
+            </Box>
+
+        </Box>
+    )
+}
 
 const ImportForm = (props: any) => {
 
-    const {setDialogOpen, title, api, accept, onCompletion} = props
+    const {closeDialog, title, api, accept, onCompletion} = props
 
     const theme = useTheme()
     const dispatch = useDispatch()
@@ -848,14 +1664,14 @@ const ImportForm = (props: any) => {
     const fileName = watch('importFile')
 
     const onCloseClick = () => {
-        setDialogOpen(false)
+        closeDialog()
         setIsFunctioning(false)
     }
 
     const downloadSample = () => {
         setIsFunctioning(true)
         const link = document.createElement("a")
-        link.href = `/sample-inventories`
+        link.href = `${serverRoute}/inventory/sample-inventories`
         link.setAttribute("download", 'fddfdsf.xlsx')
         document.body.appendChild(link)
         link.click()
@@ -885,7 +1701,7 @@ const ImportForm = (props: any) => {
                         message: 'Uploaded successfully!',
                         severity: 'success'
                     }))
-                    setDialogOpen(false)
+                    closeDialog()
                     onCompletion()
                     reset()
                 } else {

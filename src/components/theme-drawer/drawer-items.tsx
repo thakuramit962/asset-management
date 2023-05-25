@@ -11,7 +11,7 @@ import {
 import {
     AssignmentLateRounded,
     CategoryRounded, DashboardRounded, DeleteSweepRounded,
-    ExpandLessRounded, ExpandMoreRounded, GroupRounded,
+    ExpandLessRounded, ExpandMoreRounded, GroupRounded, ImportantDevicesRounded,
     Inventory2Rounded, PersonAddRounded, PersonRemoveRounded, QueuePlayNextRounded, SellRounded,
     SummarizeRounded,
     TaskAltRounded, TextSnippetRounded
@@ -29,47 +29,52 @@ export default function DrawerItems(props: any) {
 
     const navItems = [
         {label: 'Dashboard', link: '/', icon: DashboardRounded},
-        ...(user?.role_id == '1'
-            ? [{label: 'Users', link: '/users', icon: GroupRounded, subMenus: []},]
-            : []),
-        {
-            label: 'Assets',
-            link: '',
-            icon: TaskAltRounded,
-            subMenus: [
-                {label: 'Create', link: '/create-inventory', icon: QueuePlayNextRounded},
-                {label: 'List', link: '/inventories', icon: Inventory2Rounded},
-                {label: 'Assign ', link: '/assign-asset', icon: PersonAddRounded},
-                {label: 'Pullback', link: '/pullback-asset', icon: PersonRemoveRounded},
-                {label: 'Scrap', link: '/scrap-asset', icon: DeleteSweepRounded},
+
+
+        ...(user?.role_id != '1'
+            ? [
+                {label: 'Assets', link: '/inventories', icon: ImportantDevicesRounded},
+                // {label: 'Reports', link: '', icon: TaskAltRounded, subMenus: [
+                //         {label: 'Assets', link: '/demo', icon: SummarizeRounded},
+                //         {label: 'UnAssigned Assets', link: '/configurations', icon: AssignmentLateRounded},
+                //         {label: 'Undertakings ', link: '/undertakings', icon: TextSnippetRounded},
+                //     ]
+                // },
             ]
-        },
-        {
-            label: 'Reports',
-            link: '',
-            icon: TaskAltRounded,
-            subMenus: [
-                {label: 'Assets', link: '/demo', icon: SummarizeRounded},
-                {label: 'UnAssigned Assets', link: '/configurations', icon: AssignmentLateRounded},
-                {label: 'Undertakings ', link: '/undertakings', icon: TextSnippetRounded},
-            ]
-        },
-        ...(user?.role_id == '1'
-            ? [{
-                label: 'Dropdowns',
-                link: '',
-                icon: TaskAltRounded,
-                subMenus: [
-                    {label: 'Categories', link: '/categories', icon: CategoryRounded},
-                    {label: 'Brands', link: '/brands', icon: SellRounded},
-                ]
-            },]
             : []),
+
+        ...(user?.role_id == '1'
+            ? [
+                {label: 'Users', link: '/users', icon: GroupRounded, subMenus: []},
+                {label: 'Categories', link: '/categories', icon: CategoryRounded},
+                {label: 'Brands', link: '/brands', icon: SellRounded},
+                // {
+                //     label: 'Dropdowns', link: '', icon: TaskAltRounded, subMenus: [
+                //         {label: 'Categories', link: '/categories', icon: CategoryRounded},
+                //         {label: 'Brands', link: '/brands', icon: SellRounded},
+                //     ]
+                // },
+            ]
+            : []),
+        // {
+        //     label: 'Assets',
+        //     link: '',
+        //     icon: TaskAltRounded,
+        //     subMenus: [
+        //         {label: 'Create', link: '/create-inventory', icon: QueuePlayNextRounded},
+        //         {label: 'List', link: '/inventories', icon: Inventory2Rounded},
+        //         {label: 'Assign ', link: '/assign-asset', icon: PersonAddRounded},
+        //         {label: 'Pullback', link: '/pullback-asset', icon: PersonRemoveRounded},
+        //         {label: 'Scrap', link: '/scrap-asset', icon: DeleteSweepRounded},
+        //     ]
+        // },
+
     ]
 
 
     return (
-        <NavigationItems componentType={'nav'} navItems={navItems} isDrawerOpen={isDrawerOpen} toggleDrawer={toggleDrawer}/>
+        <NavigationItems componentType={'nav'} navItems={navItems} isDrawerOpen={isDrawerOpen}
+                         toggleDrawer={toggleDrawer}/>
     )
 }
 

@@ -25,6 +25,19 @@ export const downloadFile = (data: any, fileName: string) => {
 }
 
 
+export const assetStatuses = [
+    {label: 'All'},
+    // {label: 'Cancel', code: 0}, not to include in code
+    {label: 'Unassigned', code: 1},
+    {label: 'Assigned', code: 2},
+    {label: 'Scrapped', code: 3},
+    {label: 'Handover to HR', code: 4},
+    {label: 'Handover to Emp', code: 5},
+    {label: 'Recovery Pending', code: 6},
+    {label: 'Recovery Completed', code: 7},
+    {label: 'Scrap Pending', code: 8},
+    {label: 'Ready to Scrap', code: 9},
+]
 
-// export const serverRoute = 'http://192.168.5.31:8000'
-export const serverRoute = 'https://demo-assets.easemyorder.com'
+export const serverRoute = 'http://192.168.5.31:8000/api'
+// export const serverRoute = 'https://demo-assets.easemyorder.com/api'

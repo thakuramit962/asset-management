@@ -70,21 +70,26 @@ export default function ThemeDrawer(props: any) {
                         color: '#fff'
                     },
                     '& .MuiPaper-root': {
-                        background: `radial-gradient(${alpha(theme.palette.secondary.main, 0.4)},${alpha(theme.palette.primary.dark, 0.4)}) ${theme.palette.primary.dark}`,
+                        background: theme.palette.background.default,
+                        // background: `radial-gradient(${alpha(theme.palette.secondary.main, 0.4)},${alpha(theme.palette.primary.dark, 0.4)}) ${theme.palette.primary.dark}`,
                         transition: 'all 300ms ease-in-out',
                         '& a': {
                             textDecoration: 'none',
-                            color: '#fff',
+                            // color: '#fff',
                         },
                         '& .MuiTypography-root': {
                             fontSize: '0.875rem',
-                            color: theme.palette.primary.contrastText,
+                            color: theme.palette.text.primary,
                         },
                         '& .activeNavlink .MuiListItemButton-root': {
-                            backgroundColor: '#00000021',
+                            // backgroundColor: '#00000021',
+
                         },
                         '& .activeNavlink .MuiListItem-root': {
-                            borderLeft: `2px solid ${theme.palette.secondary.main}`
+                            borderLeft: `2px solid ${theme.palette.primary.main}`,
+                            '& .MuiListItemButton-root svg': {
+                                color: theme.palette.text.primary,
+                            },
                         },
                         '& .MuiListItem-root': {
                             display: 'block',
@@ -97,16 +102,13 @@ export default function ThemeDrawer(props: any) {
                                 px: 2.5,
                                 py: '6px',
                                 '&:hover': {
-                                    backgroundColor: '#ffffff10',
+                                    backgroundColor: alpha(theme.palette.text.secondary, 0.05),
                                 },
                                 '& svg': {
-                                    color: theme.palette.primary.contrastText,
+                                    color: theme.palette.text.secondary,
+                                    // color: theme.palette.primary.contrastText,
                                     height: '20px',
                                     width: '20px',
-                                    // '&.expandArrow':{
-                                    //     height: open ? '20px' : 0,
-                                    //     width: open ? '20px' : 0,
-                                    // }
                                 },
                                 '& .MuiListItemIcon-root': {
                                     minWidth: 0,
@@ -122,12 +124,6 @@ export default function ThemeDrawer(props: any) {
                                 },
                             },
                         },
-                        '& div.MuiList-root': {
-                            // overflow: 'hidden',
-                            // height: open ? 'auto' : 0,
-                            // py: open ? 1 : 0,
-                            // transition: 'all 300ms ease-in-out',
-                        }
                     },
                 }}>
             <Box sx={{
@@ -142,7 +138,7 @@ export default function ThemeDrawer(props: any) {
                 },
                 '& .title': {
                     cursor: 'pointer',
-                    color: theme.palette.primary.contrastText,
+                    // color: theme.palette.primary.contrastText,
                     fontSize: '1.2rem !important'
                 },
             }}>

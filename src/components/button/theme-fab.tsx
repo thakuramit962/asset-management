@@ -30,7 +30,7 @@ export default function ThemeFab(props: ThemeFabProps) {
             style={{transitionDelay: `200ms`,}}
             unmountOnExit>
             <Fab sx={{
-                position: 'absolute',
+                position: 'fixed',
                 bottom: 24,
                 right: 24,
                 height: '60px',

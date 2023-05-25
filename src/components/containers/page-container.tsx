@@ -15,16 +15,10 @@ export default function PageContainer(props: PageContainerProps) {
     return (
         <Paper sx={{
             flex: 1,
-            boxShadow: 0,
             borderRadius: '12px',
-            py: 2,
-            // background: `url(${demoBg})`,
-            // backgroundPosition: 'bottom',
-            // backgroundSize: 'cover',
-            // backgroundRepeat: 'no-repeat',
+            boxShadow: {xs: 0, sm: '0 0 12px #83838360'},
+            py: {xs: 0, sm: 2},
             maxWidth: '100vw',
-            // maxHeight: 'calc(100vh - 96px)',
-            // overflowY: 'auto',
             '& .pageHeading': {
                 fontSize: 'clamp(0.9rem, 7vw, 1rem)',
                 lineHeight: 'clamp(0.9rem, 7vw, 1.1rem)',
