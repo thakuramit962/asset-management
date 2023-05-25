@@ -46,7 +46,6 @@ export default function CreateUser() {
     const {control, reset, handleSubmit, formState: {errors}} = useForm({
         defaultValues: {
             role_id: '',
-            branch_id: '',
             login_id: '',
             name: '',
             email: '',
@@ -134,6 +133,7 @@ export default function CreateUser() {
                             render={({field}) => (
                                 <ThemeTextField
                                     {...field} select required
+                                    autoComplete={'off'}
                                     error={Boolean(errors?.role_id)}
                                     helperText={errors?.role_id?.message}
                                     size={'small'} label={'Role'}
@@ -144,30 +144,17 @@ export default function CreateUser() {
                                     ))}
                                 </ThemeTextField>
                             )}/>
-                        <Controller
-                            name={`branch_id`}
-                            control={control}
-                            rules={{required: {value: false, message: 'Required'}}}
-                            render={({field}) => (
-                                <ThemeTextField
-                                    {...field} select required
-                                    error={Boolean(errors?.branch_id)}
-                                    helperText={errors?.branch_id?.message}
-                                    size={'small'} label={'Branch'}
-                                    sx={{flex: 1, minWidth: {xs: '100%', sm: '22%'}}}
-                                    placeholder={'Select Branch'}>
-                                    {locations?.map((location, index) => (
-                                        <MenuItem key={index} value={location.id}>{location.name}</MenuItem>
-                                    ))}
-                                </ThemeTextField>
-                            )}/>
+
                         <Controller
                             name={`login_id`}
                             control={control}
-                            rules={{required: {value: true, message: 'Required'}}}
+                            rules={{
+                                required: {value: true, message: 'Required'},
+                            }}
                             render={({field}) => (
                                 <ThemeTextField
                                     {...field} required
+                                    autoComplete="dsadsad"
                                     error={Boolean(errors?.login_id)}
                                     helperText={errors?.login_id?.message}
                                     size={'small'} label={'Login Id'}
@@ -183,6 +170,7 @@ export default function CreateUser() {
                             defaultValue={''}
                             render={({field}) => (
                                 <ThemePasswordInput
+                                    autoComplete="off"
                                     fieldProps={field} error={Boolean(errors?.password)}
                                     helperText={errors?.password?.message}
                                     label={'Password'} placeholder={'********'}
