@@ -3,7 +3,7 @@ import {serverRoute} from "../utils/app-helper"
 
 
 const API = Axios.create({
-    baseURL: 'https://demo-assets.easemyorder.com/api',
+    baseURL: serverRoute,
     timeout: 30000,
     headers: {
         "Content-Type": "application/json",
