@@ -39,5 +39,5 @@ export const assetStatuses = [
     {label: 'Ready to Scrap', code: 9},
 ]
 
-export const serverRoute = 'http://192.168.5.31:8000/api'
-// export const serverRoute = 'https://demo-assets.easemyorder.com/api'
+// export const serverRoute = 'http://192.168.5.31:8000/api'
+export const serverRoute = 'https://demo-assets.easemyorder.com/api'
