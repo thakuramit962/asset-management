@@ -312,7 +312,8 @@ export default function Inventories() {
                                                 py: 15,
                                             }}>
                                                 No Data<br/><br/>
-                                                <IconButton onClick={() => fetchInventory()} sx={{
+                                                <IconButton onClick={() => fetchInventory(undefined, '', assetStatus == 0 ? undefined : assetStatus)}
+                                                            sx={{
                                                     fontSize: '12px',
                                                     minWidth: '4rem',
                                                     borderRadius: '50vh'
@@ -1419,6 +1420,7 @@ const RequestScrapAsset = (props: any) => {
     const onSubmit = (data: any) => {
         setLoading(true)
         let newData = {
+            remarks: data.remarks,
             asset_id: asset?.id,
             // status: 1,
             account_email: 'amit.thakur@eternitysolutions.net',
@@ -1519,7 +1521,7 @@ const RequestScrapAsset = (props: any) => {
                     <LoadingButton onClick={resetAndClose} disabled={loading}>Discard & Close</LoadingButton>
                     <LoadingButton onClick={handleSubmit(onSubmit)} variant={'contained'}
                                    loading={loading} sx={{minWidth: {xs: 'min-content', sm: '150px'}}}>
-                        Un-assign <ArrowRightRounded/>
+                        Update <ArrowRightRounded/>
                     </LoadingButton>
                 </Box>
             </Box>
