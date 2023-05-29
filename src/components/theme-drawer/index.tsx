@@ -7,7 +7,8 @@ import {
     CSSObject, useMediaQuery, alpha, Toolbar, MenuItem, Stack
 } from '@mui/material'
 
-import logo from '../../assets/images/logo.png'
+// import logo from '../../assets/images/logo.png'
+import logo from '../../assets/images/asset-logo.svg'
 
 import DrawerItems from "./drawer-items";
 import {Box} from "@mui/material";

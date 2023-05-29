@@ -27,6 +27,7 @@ export default function AccountMenu() {
 
     const onLogout = () => {
         dispatch(updateAuth({isLoggedIn: false, accessToken: '', currentUser: {} as User}))
+        navigate('/')
     }
 
     return (
