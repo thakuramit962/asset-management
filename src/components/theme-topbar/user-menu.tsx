@@ -12,6 +12,10 @@ import {useNavigate} from "react-router-dom";
 import {updateAuth} from "../../slices/auth-slice";
 import {useDispatch} from "react-redux";
 import {User} from "../../models/user";
+import API from "../../api";
+import {updateSnackbarMessage} from "../../slices/snackbar-message-slice";
+import {Simulate} from "react-dom/test-utils";
+import error = Simulate.error;
 
 
 export default function AccountMenu() {
@@ -26,6 +30,7 @@ export default function AccountMenu() {
     const handleClose = () => setAnchorEl(null)
 
     const onLogout = () => {
+        API.get(`/logout`).catch(error=> console.log(error))
         dispatch(updateAuth({isLoggedIn: false, accessToken: '', currentUser: {} as User}))
         navigate('/')
     }
