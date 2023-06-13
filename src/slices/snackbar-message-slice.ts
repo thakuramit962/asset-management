@@ -14,7 +14,7 @@ const initialState: SnackbarMessage = {
     key: '',
     title: '',
     message: '',
-    severity: "info",
+    severity: undefined,
 }
 
 export const snackbarMessageSlice = createSlice({
