@@ -35,7 +35,7 @@ export default function ThemeSnackbar(props: SnackbarProps) {
                 key: '',
                 title: '',
                 message: '',
-                severity: "info",
+                severity: undefined,
             }
         ))
     }
@@ -57,7 +57,7 @@ export default function ThemeSnackbar(props: SnackbarProps) {
             }}>
             <Alert
                 variant={'filled'}
-                severity={snackbarData?.severity ?? 'info'}
+                severity={snackbarData?.severity}
                 action={
                     <IconButton
                         aria-label="close"
