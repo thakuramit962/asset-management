@@ -6,9 +6,9 @@ import {
     alpha,
     Autocomplete,
     Box,
-    Button, Checkbox, Chip,
+    Button, Checkbox, Chip, FormControl, FormControlLabel,
     IconButton,
-    InputAdornment, MenuItem, Skeleton, Stack, Tab,
+    InputAdornment, MenuItem, Radio, RadioGroup, Skeleton, Stack, Tab,
     Table, TableBody, TableCell,
     TableHead,
     TableRow, Tabs, Tooltip,
@@ -312,12 +312,13 @@ export default function Inventories() {
                                                 py: 15,
                                             }}>
                                                 No Data<br/><br/>
-                                                <IconButton onClick={() => fetchInventory(undefined, '', assetStatus == 0 ? undefined : assetStatus)}
-                                                            sx={{
-                                                    fontSize: '12px',
-                                                    minWidth: '4rem',
-                                                    borderRadius: '50vh'
-                                                }}><Sync/> Refresh</IconButton>
+                                                <IconButton
+                                                    onClick={() => fetchInventory(undefined, '', assetStatus == 0 ? undefined : assetStatus)}
+                                                    sx={{
+                                                        fontSize: '12px',
+                                                        minWidth: '4rem',
+                                                        borderRadius: '50vh'
+                                                    }}><Sync/> Refresh</IconButton>
 
                                             </TableCell>
                                         </TableRow>
@@ -1048,6 +1049,12 @@ const RequestRecoverAsset = (props: any) => {
     const [fetchingEmployee, setFetchingEmployee] = useState<boolean>(false)
     const [employee, setEmployee] = useState<any>({} as any)
 
+    const [recoveryType, setRecoveryType] = useState('fullAndFinal')
+
+    const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setRecoveryType((event.target as HTMLInputElement).value)
+    }
+
     async function fetchEmployeeDetail() {
         setFetchingEmployee(true)
         try {
@@ -1062,12 +1069,15 @@ const RequestRecoverAsset = (props: any) => {
         }
     }
 
-    const onSubmit = (data: any) => {
+    const onSubmit = () => {
         setLoading(true)
         let newData = {
             asset_id: asset?.id,
+            recoveryType: recoveryType,
             emp_email: employee?.personal_email_id,
         }
+
+        console.log(newData)
 
         API.post(`/pullback-employee`, newData)
             .then((res) => {
@@ -1139,6 +1149,13 @@ const RequestRecoverAsset = (props: any) => {
                         request Recover <strong>FR-CHD-{asset?.un_id}</strong> <br/>
                         from <strong>{asset?.assign_emp_name}</strong> ?</Typography>
 
+
+                    <FormControl sx={{width: '100%', mb: 1,}}>
+                        <RadioGroup row name="recoveryType" value={recoveryType} onChange={handleChange} sx={{justifyContent: 'center'}}>
+                            <FormControlLabel value="fullAndFinal" control={<Radio/>} label="Full & Final"/>
+                            <FormControlLabel value="replacement" control={<Radio/>} label="Replacement"/>
+                        </RadioGroup>
+                    </FormControl>
                 </Box>
 
 
