@@ -15,6 +15,7 @@ import Inventories from "../pages/inventories";
 import CreateInventory from "../pages/inventories/create-inventory";
 import TestPages from "../pages/test-pages";
 import SingleAsset from "../pages/inventories/single-asset";
+import Employees from "../pages/employees";
 
 export default function WebRoutes() {
 
@@ -83,6 +84,8 @@ export default function WebRoutes() {
                 <Route element={<ProtectedRouteAuthCheck/>}>
                     <Route path="/" element={<Layout/>}>
                         <Route path="" element={<Dashboard/>}/>
+                        <Route path="employees" element={<Employees/>}/>
+
                         <Route path="inventories" element={<Inventories/>}/>
                         <Route path="inventories/:inventoryId" element={<SingleAsset/>}/>
                         <Route path="create-inventory" element={<CreateInventory/>}/>

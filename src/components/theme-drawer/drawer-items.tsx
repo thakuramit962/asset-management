@@ -29,6 +29,7 @@ export default function DrawerItems(props: any) {
 
     const navItems = [
         {label: 'Dashboard', link: '/', icon: DashboardRounded},
+        {label: 'Employees', link: '/employees', icon: GroupRounded},
 
 
         ...(user?.role_id != '1'
